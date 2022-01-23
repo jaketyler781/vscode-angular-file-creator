@@ -1,3 +1,133 @@
 {
-  "debug.node.autoAttach": "on"
+    "debug.node.autoAttach": "on",
+    "git.autofetch": false,
+    "files.trimTrailingWhitespace": true,
+    "breadcrumbs.enabled": true,
+    "editor.rulers": [120],
+    "files.associations": {
+        "*.makefile": "makefile",
+        "*.json": "jsonc"
+    },
+
+    "editor.formatOnSave": true,
+    "editor.semanticTokenColorCustomizations": {
+        "rules": {
+            "*.async": "#cc9057",
+            "property": "#d36f99",
+            "property.readonly": "#4fc1ff"
+        }
+    },
+
+    "prettier.prettierPath": "node_modules/prettier/",
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[html]": {
+        "editor.defaultFormatter": "stringham.angular-template-formatter"
+    },
+    "[less]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[bazel]": {
+        "editor.formatOnSave": false
+    },
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    },
+    "eslint.workingDirectories": ["cake/"],
+
+    "gitlens.remotes": [
+        {
+            "domain": "git.lucidutil.com",
+            "type": "BitbucketServer"
+        }
+    ],
+
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.tsserver.maxTsServerMemory": 10000,
+
+    // *** You may find the below options useful ***
+
+    // "workbench.editor.enablePreviewFromQuickOpen": false,
+    // "workbench.editor.enablePreview": false,
+
+    // "search.smartCase": true,
+    // "editor.acceptSuggestionOnCommitCharacter": false,
+
+    // *** The following lists are all the same ***
+    "search.exclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/*.css": {"when": "$(basename).less"},
+        "**/*.js": {"when": "$(basename).ts"},
+        "**/*.min.*": true,
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/cake/target/*": true,
+        "target/*": true,
+        "**/i18n/generated": true,
+        "**/plugins/search": true,
+        "**/plugins/thumbs": true,
+        "**/plugins/v2/src": true,
+        "**/plugins/v2/source-maps": true,
+        "**/dts": true,
+
+        // The below are not neccessarily all generated files, however, you're unlikely to care about them.
+        "**/corporate": true,
+        "**/pdf-data-generator/src/app": true,
+        "**/pdf-data-generator/src/plugins": true,
+        "**/pdf-data-generator/src/closure": true,
+        "**/pdf-data-generator/src/hyphen": true,
+        "**/pdf-data-generator/src/libraries": true,
+        "**/pdf-data-generator/src/xregexp": true,
+        "**/pdf-data-generator/src/reflect": true,
+        "**/pdf-data-generator/src/clipper.js": true,
+        "**/sentinel-ui": true,
+        "**/admin/public": true,
+        "**/confluence-onprem": true,
+        "**/confluence-onprem-batik": true,
+        "**/confluence-onprem-e2e": true
+    },
+    "files.watcherExclude": {
+        "**/bazel-*/**": true,
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/*.css": {"when": "$(basename).less"},
+        "**/*.js": {"when": "$(basename).ts"},
+        "**/*.min.*": true,
+        "**/node_modules": true,
+        "**/bower_components": true,
+        "**/cake/target/*": true,
+        "target/*": true,
+        "**/i18n/generated": true,
+        "**/plugins/search": true,
+        "**/plugins/thumbs": true,
+        "**/plugins/v2/src": true,
+        "**/plugins/v2/source-maps": true,
+        "**/dts": true,
+
+        // The below are not neccessarily all generated files, however, you're unlikely to care about them.
+        "**/corporate": true,
+        "**/pdf-data-generator/src/app": true,
+        "**/pdf-data-generator/src/plugins": true,
+        "**/pdf-data-generator/src/closure": true,
+        "**/pdf-data-generator/src/hyphen": true,
+        "**/pdf-data-generator/src/libraries": true,
+        "**/pdf-data-generator/src/xregexp": true,
+        "**/pdf-data-generator/src/reflect": true,
+        "**/pdf-data-generator/src/clipper.js": true,
+        "**/*-ios": true,
+        "**/sentinel-ui": true,
+        "**/admin/public": true,
+        "**/confluence-onprem": true,
+        "**/confluence-onprem-batik": true,
+        "**/confluence-onprem-e2e": true
+    },
+    "git.showUnpublishedCommitsButton": "never",
+    "gitlens.blame.ignoreWhitespace": true,
+    "terminal.integrated.scrollback": 50000,
+    "terminal.integrated.allowChords": false
 }

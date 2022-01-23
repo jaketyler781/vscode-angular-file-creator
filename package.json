@@ -1,48 +1,99 @@
 {
-	"name": "helloworld-sample",
-	"displayName": "helloworld-sample",
-	"description": "HelloWorld example for VS Code",
-	"version": "0.0.1",
-	"publisher": "vscode-samples",
-	"repository": "https://github.com/Microsoft/vscode-extension-samples/helloworld-sample",
-	"engines": {
-		"vscode": "^1.32.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"onCommand:extension.helloWorld"
-	],
-	"main": "./out/extension.js",
-	"contributes": {
-		"commands": [
-			{
-				"command": "extension.helloWorld",
-				"title": "Hello World"
-			}
-		]
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"lint": "eslint . --ext .ts,.tsx",
-		"watch": "tsc -watch -p ./",
-		"pretest": "npm run compile",
-		"test": "node ./out/test/runTest.js"
-	},
-	"devDependencies": {
-		"@types/glob": "^7.1.1",
-		"@types/mocha": "^5.2.6",
-		"@types/node": "^12.12.0",
-		"@types/vscode": "^1.32.0",
-		"@typescript-eslint/eslint-plugin": "^4.16.0",
-		"@typescript-eslint/parser": "^4.16.0",
-		"@vscode/test-electron": "^1.6.1",
-		"eslint": "^7.21.0",
-		"glob": "^7.1.4",
-		"mocha": "^6.1.4",
-		"source-map-support": "^0.5.12",
-		"typescript": "^4.2.2"
-	}
+    "name": "angular-file-creator",
+    "displayName": "angular-file-creator",
+    "description": "Creates base files for Angular components, modules, directives, and tests",
+    "version": "0.0.1",
+    "publisher": "jake.tyler781",
+    "repository": "https://github.com/jaketyler781/angular-file-creator",
+    "engines": {
+        "vscode": "^1.32.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "onCommand:extension.angularFileCreator.create-component",
+        "onCommand:extension.angularFileCreator.create-directive",
+        "onCommand:extension.angularFileCreator.create-module",
+        "onCommand:extension.angularFileCreator.create-unit-test"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "menus": {
+            "explorer/context": [
+                {
+                    "command": "extension.angularFileCreator.create-component",
+                    "group": "1_modification",
+                    "when": "explorerViewletVisible"
+                },
+                {
+                    "command": "extension.angularFileCreator.create-directive",
+                    "group": "1_modification",
+                    "when": "explorerViewletVisible"
+                },
+                {
+                    "command": "extension.angularFileCreator.create-module",
+                    "group": "1_modification",
+                    "when": "explorerViewletVisible"
+                },
+                {
+                    "command": "extension.angularFileCreator.create-unit-test",
+                    "group": "1_modification",
+                    "when": "explorerViewletVisible"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "extension.angularFileCreator.create-component",
+                "title": "Create angular component"
+            },
+            {
+                "command": "extension.angularFileCreator.create-directive",
+                "title": "Create angular directive"
+            },
+            {
+                "command": "extension.angularFileCreator.create-module",
+                "title": "Create angular module"
+            },
+            {
+                "command": "extension.angularFileCreator.create-unit-test",
+                "title": "Create unit test"
+            }
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "VsCode Angular File Creator Configuration",
+            "properties": {
+                "extension.angularFileCreator.prefix": {
+                    "type": "string",
+                    "default": "lucid",
+                    "description": "Specifies a prefix to add to selectors and names of modules, components, and directives created"
+                }
+            }
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "lint": "eslint . --ext .ts,.tsx",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile",
+        "test": "node ./out/test/runTest.js"
+    },
+    "devDependencies": {
+        "@types/glob": "^7.1.1",
+        "@types/mocha": "^5.2.6",
+        "@types/node": "^12.12.0",
+        "@types/vscode": "^1.32.0",
+        "@typescript-eslint/eslint-plugin": "^4.16.0",
+        "@typescript-eslint/parser": "^4.16.0",
+        "@vscode/test-electron": "^1.6.1",
+        "eslint": "^7.21.0",
+        "glob": "^7.1.4",
+        "mocha": "^6.1.4",
+        "source-map-support": "^0.5.12",
+        "typescript": "^4.2.2",
+        "prettier": "2.5.1"
+    }
 }

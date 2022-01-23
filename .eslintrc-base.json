@@ -1,0 +1,71 @@
+{
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {}
+    },
+    "env": {
+        "node": true,
+        "browser": true
+    },
+    "plugins": ["@typescript-eslint", "@angular-eslint"],
+    "rules": {
+        "for-direction": "error",
+        "no-var": "error",
+        "prefer-const": ["warn", {"destructuring": "all"}],
+        "curly": "warn",
+        "no-debugger": "warn",
+        "no-extra-boolean-cast": "warn",
+        "no-extra-semi": "warn",
+        "no-regex-spaces": "warn",
+        "no-unused-labels": "warn",
+        "no-irregular-whitespace": "warn",
+        "getter-return": "warn",
+        "no-compare-neg-zero": "warn",
+        "no-cond-assign": "warn",
+        "no-constant-condition": "warn",
+        "no-dupe-else-if": "warn",
+        "no-duplicate-case": "warn",
+        "no-empty-character-class": "warn",
+        "no-ex-assign": "warn",
+        "no-invalid-regexp": "warn",
+        "no-misleading-character-class": "warn",
+        "no-unreachable": "warn",
+        "no-unsafe-finally": "warn",
+        "use-isnan": "warn",
+        "@typescript-eslint/ban-types": [
+            "error",
+            {
+                "types": {
+                    "Object": {"message": "Use object instead", "fixWith": "object"},
+                    "Function": false,
+                    "object": false,
+                    "{}": false
+                }
+            }
+        ],
+        "@typescript-eslint/explicit-member-accessibility": ["error", {"overrides": {"constructors": "no-public"}}],
+        "@typescript-eslint/prefer-enum-initializers": "error",
+        "@typescript-eslint/no-empty-interface": "warn",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/prefer-as-const": "warn",
+        "@typescript-eslint/prefer-namespace-keyword": "warn",
+        "@angular-eslint/prefer-on-push-component-change-detection": "error"
+    },
+    "overrides": [
+        {
+            "files": ["*.test.ts", "*.spec.ts"],
+            "rules": {
+                "@angular-eslint/prefer-on-push-component-change-detection": "off"
+            }
+        },
+        {
+            "files": ["cake/app/webroot/ts/**/*.ts", "app/webroot/ts/**/*.ts"],
+            "rules": {
+                "@typescript-eslint/no-non-null-assertion": "error"
+            }
+        }
+    ]
+}
