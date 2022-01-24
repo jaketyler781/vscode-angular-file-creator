@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-export function writeFile(path: string, content: string): Promise<void> {
+export async function writeFile(path: string, content: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         fs.writeFile(path, content, (err) => {
             if (err) {
@@ -14,7 +14,7 @@ export function writeFile(path: string, content: string): Promise<void> {
     });
 }
 
-export function findModules(inDirectory: string): Promise<string[]> {
+export async function findModules(inDirectory: string): Promise<string[]> {
     return new Promise((resolve, reject) => {
         fs.readdir(inDirectory, (err, items) => {
             if (err) {
