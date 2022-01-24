@@ -168,12 +168,7 @@ function createDirective(prefix: string[], name: string[], inFolder: string): Pr
     }
 }
 
-export async function addToModule(
-    moduleUri: string,
-    name: string[],
-    inFolder: string,
-    fileType: FileType,
-): Promise<void> {
+async function addToModule(moduleUri: string, name: string[], inFolder: string, fileType: FileType): Promise<void> {
     const module = new ModuleModifier(moduleUri);
     const containingFolder = path.join(inFolder, getFolderName(name));
     const extension = fileType === FileType.Component ? '.component' : '.directive';
@@ -202,12 +197,7 @@ export async function addToModule(
     }
 }
 
-export function checkAddToModule(
-    modules: string[],
-    name: string[],
-    inFolder: string,
-    fileType: FileType,
-): Promise<void> {
+function checkAddToModule(modules: string[], name: string[], inFolder: string, fileType: FileType): Promise<void> {
     const relativeModules = modules.map((mod) => path.relative(inFolder, mod));
     relativeModules.push('Do not add to a module');
     return Promise.resolve(
@@ -228,7 +218,7 @@ export function checkAddToModule(
     );
 }
 
-export function getNameOfObject(defaultName: string, prompt: string, exampleName: string): Promise<string> {
+function getNameOfObject(defaultName: string, prompt: string, exampleName: string): Promise<string> {
     return Promise.resolve(
         vscode.window
             .showInputBox({
