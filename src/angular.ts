@@ -98,27 +98,17 @@ function getDirectiveClassName(nameParts: string[]): string {
     return camelCase(nameParts, true) + 'Directive';
 }
 
-function createModule(prefix: string[], name: string[], inFolder: string): Promise<any> {
+async function createModule(prefix: string[], name: string[], inFolder: string): Promise<void> {
     const containingFolder = path.join(inFolder, getFolderName(name));
 
     if (fs.existsSync(containingFolder)) {
-        return Promise.reject(new Error('File or folder with name ' + containingFolder + ' already exists'));
-    } else {
-        const modulePath = path.join(containingFolder, getModuleName(name));
-        return new Promise((resolve, reject) => {
-            fs.mkdir(containingFolder, (err) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    writeFile(modulePath, getModuleTemplate(prefix, name)).then(resolve, reject);
-                }
-            });
-        }).then(() => {
-            return vscode.workspace.openTextDocument(modulePath).then((textDoc) => {
-                return vscode.window.showTextDocument(textDoc);
-            });
-        });
+        throw new Error('File or folder with name ' + containingFolder + ' already exists');
     }
+    const modulePath = path.join(containingFolder, getModuleName(name));
+    await makeFolder(containingFolder);
+    await writeFile(modulePath, getModuleTemplate(prefix, name));
+    const textDoc = await vscode.workspace.openTextDocument(modulePath);
+    await vscode.window.showTextDocument(textDoc);
 }
 
 async function createComponent(prefix: string[], name: string[], inFolder: string): Promise<void> {
