@@ -140,18 +140,15 @@ async function createComponent(prefix: string[], name: string[], inFolder: strin
     await vscode.window.showTextDocument(textDoc);
 }
 
-function createDirective(prefix: string[], name: string[], inFolder: string): Promise<any> {
+async function createDirective(prefix: string[], name: string[], inFolder: string): Promise<void> {
     const directivePath = path.join(inFolder, getFileName(name, '.directive.ts'));
 
     if (fs.existsSync(directivePath)) {
-        return Promise.reject(new Error(`File with name ${directivePath} already exists`));
-    } else {
-        return writeFile(directivePath, getDirectiveTemplate(prefix, name)).then(() => {
-            return vscode.workspace.openTextDocument(directivePath).then((textDoc) => {
-                return vscode.window.showTextDocument(textDoc);
-            });
-        });
+        throw new Error(`File with name ${directivePath} already exists`);
     }
+    await writeFile(directivePath, getDirectiveTemplate(prefix, name));
+    const textDoc = await vscode.workspace.openTextDocument(directivePath);
+    await vscode.window.showTextDocument(textDoc);
 }
 
 async function addToModule(moduleUri: string, name: string[], inFolder: string, fileType: FileType): Promise<void> {
