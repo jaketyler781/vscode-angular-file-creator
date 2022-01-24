@@ -191,32 +191,26 @@ function checkAddToModule(modules: string[], name: string[], inFolder: string, f
     );
 }
 
-function getNameOfObject(defaultName: string, prompt: string, exampleName: string): Promise<string> {
-    return Promise.resolve(
-        vscode.window
-            .showInputBox({
-                prompt: prompt,
-                value: defaultName,
-                validateInput: (currentName) => {
-                    if (!currentName) {
-                        return 'Name is required';
-                    } else if (InvalidCharacterRegex.test(currentName)) {
-                        return 'Name should be valid javascript token with letter numbers and underscores and no spaces';
-                    } else if (currentName[0].toUpperCase() != currentName[0]) {
-                        return 'Name should be upper camel case eg ' + exampleName;
-                    } else {
-                        return null;
-                    }
-                },
-            })
-            .then((result) => {
-                if (!result) {
-                    throw new Error('Name should be a valid upper camel case javascript token');
-                } else {
-                    return result;
-                }
-            }),
-    );
+async function getNameOfObject(defaultName: string, prompt: string, exampleName: string): Promise<string> {
+    const result = await vscode.window.showInputBox({
+        prompt: prompt,
+        value: defaultName,
+        validateInput: (currentName) => {
+            if (!currentName) {
+                return 'Name is required';
+            } else if (InvalidCharacterRegex.test(currentName)) {
+                return 'Name should be valid javascript token with letter numbers and underscores and no spaces';
+            } else if (currentName[0].toUpperCase() != currentName[0]) {
+                return 'Name should be upper camel case eg ' + exampleName;
+            } else {
+                return undefined; // The user provided a valid name
+            }
+        },
+    });
+    if (!result) {
+        throw new Error('Name should be a valid upper camel case javascript token');
+    }
+    return result;
 }
 
 export function activate(context: vscode.ExtensionContext) {
