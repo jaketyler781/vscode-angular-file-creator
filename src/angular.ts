@@ -213,34 +213,35 @@ async function getNameOfObject(defaultName: string, prompt: string, exampleName:
     return result;
 }
 
+async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
+    if (!uri.fsPath) {
+        vscode.window.showErrorMessage('No folder selected to contain new component');
+        return;
+    }
+
+    try {
+        const componentName = await getNameOfObject(
+            'NewComponent',
+            'Name of component class',
+            'TestComponent FooBarComponent',
+        );
+        const name = getComponentNameParts(componentName);
+        const prefix = getPrefix();
+        await createComponent(prefix, name, uri.fsPath);
+        const modules = await findModules(uri.fsPath);
+        if (modules.length) {
+            await checkAddToModule(modules, name, uri.fsPath, FileType.Component);
+        }
+    } catch (err) {
+        vscode.window.showErrorMessage(err.toString());
+        console.error(err);
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
     const createComponentListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-component',
-        (uri: vscode.Uri) => {
-            if (!uri.fsPath) {
-                vscode.window.showErrorMessage('No folder selected to contain new component');
-                return;
-            }
-
-            getNameOfObject('NewComponent', 'Name of component class', 'TestComponent FooBarComponent')
-                .then((componentName) => {
-                    const name = getComponentNameParts(componentName);
-
-                    const prefix = getPrefix();
-
-                    return createComponent(prefix, name, uri.fsPath).then(() => {
-                        return findModules(uri.fsPath).then((modules) => {
-                            if (modules.length) {
-                                return checkAddToModule(modules, name, uri.fsPath, FileType.Component);
-                            }
-                        });
-                    });
-                })
-                .catch((err) => {
-                    vscode.window.showErrorMessage(err.toString());
-                    console.error(err);
-                });
-        },
+        (uri: vscode.Uri) => runCreateComponentCommand(uri),
     );
     context.subscriptions.push(createComponentListener);
 
