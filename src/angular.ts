@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import {writeFile, findModules} from './file';
+import {writeFile, findModules, makeFolder} from './file';
 import {ModuleModifier} from './modulemodifier';
 import {getNameParts, getComponentNameParts, getSelectorName, getPrefix, camelCase, getModuleClassName} from './naming';
 
@@ -121,37 +121,23 @@ function createModule(prefix: string[], name: string[], inFolder: string): Promi
     }
 }
 
-function createComponent(prefix: string[], name: string[], inFolder: string): Promise<any> {
+async function createComponent(prefix: string[], name: string[], inFolder: string): Promise<void> {
     const containingFolder = path.join(inFolder, getFolderName(name));
 
     if (fs.existsSync(containingFolder)) {
-        return Promise.reject(new Error('File or folder with name ' + containingFolder + ' already exists'));
-    } else {
-        const componentPath = path.join(containingFolder, getFileName(name, '.component.ts'));
-        return new Promise((resolve, reject) => {
-            fs.mkdir(containingFolder, (err) => {
-                if (err) {
-                    reject(err);
-                } else {
-                    Promise.all([
-                        writeFile(componentPath, getComponentTemplate(prefix, name)),
-                        writeFile(
-                            path.join(containingFolder, getFileName(name, '.component.html')),
-                            getHTMLTemplate(name),
-                        ),
-                        writeFile(
-                            path.join(containingFolder, getFileName(name, '.component.less')),
-                            getLessTemplate(name),
-                        ),
-                    ]).then(resolve, reject);
-                }
-            });
-        }).then(() => {
-            return vscode.workspace.openTextDocument(componentPath).then((textDoc) => {
-                return vscode.window.showTextDocument(textDoc);
-            });
-        });
+        throw new Error('File or folder with name ' + containingFolder + ' already exists');
     }
+    await makeFolder(containingFolder);
+    const componentPath = path.join(containingFolder, getFileName(name, '.component.ts'));
+    const templatePath = path.join(containingFolder, getFileName(name, '.component.html'));
+    const stylesheetPath = path.join(containingFolder, getFileName(name, '.component.less'));
+    await Promise.all([
+        writeFile(componentPath, getComponentTemplate(prefix, name)),
+        writeFile(templatePath, getHTMLTemplate(name)),
+        writeFile(stylesheetPath, getLessTemplate(name)),
+    ]);
+    const textDoc = await vscode.workspace.openTextDocument(componentPath);
+    await vscode.window.showTextDocument(textDoc);
 }
 
 function createDirective(prefix: string[], name: string[], inFolder: string): Promise<any> {

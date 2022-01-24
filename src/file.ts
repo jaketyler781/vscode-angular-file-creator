@@ -49,3 +49,15 @@ export function ensureDot(relativePath: string): string {
         return './' + relativePath;
     }
 }
+
+export async function makeFolder(folder: string) {
+    return new Promise<void>((resolve, reject) => {
+        fs.mkdir(folder, (err) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve();
+            }
+        });
+    });
+}
