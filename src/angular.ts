@@ -9,8 +9,9 @@ import {getNameParts, getComponentNameParts, getSelectorName, getPrefix, camelCa
 const InvalidCharacterRegex = /[^\w\d_]|^\d/i;
 
 enum FileType {
-    Component,
-    Directive,
+    Component = 'component',
+    Directive = 'directive',
+    Module = 'module',
 }
 
 const lessTemplate = `
@@ -246,23 +247,24 @@ async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
     }
 }
 
+function trimClassNameParts(nameParts: string[], fileType: FileType): string[] {
+    if (nameParts[nameParts.length - 1] === fileType) {
+        nameParts.pop();
+    }
+    const prefix = getPrefix();
+    if (prefix.every((part, index) => nameParts[index] === part)) {
+        nameParts.splice(0, prefix.length);
+    }
+    return nameParts;
+}
+
 async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
     const moduleName = await promptUserForClassName({
         defaultName: 'NewModule',
         prompt: 'Name of module class',
         exampleName: 'TestModule FooBarModule',
     });
-    const name = getNameParts(moduleName);
-
-    if (name[name.length - 1] === 'module') {
-        name.pop();
-    }
-
-    const prefix = getPrefix();
-    if (prefix.every((part, index) => name[index] === part)) {
-        name.splice(0, prefix.length);
-    }
-
+    const name = trimClassNameParts(getNameParts(moduleName), FileType.Module);
     await createModule(name, uri.fsPath);
 }
 
