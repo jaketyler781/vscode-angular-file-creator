@@ -24,12 +24,12 @@ function getHTMLTemplate(name: string[]) {
 `;
 }
 
-function getComponentTemplate(prefix: string[], name: string[]) {
+function getComponentTemplate(name: string[]) {
     return `import {Component, ChangeDetectionStrategy} from '@angular/core';
 
 @Component({
     moduleId: module.id,
-    selector: '${getSelectorName(prefix, name)}',
+    selector: '${getSelectorName(getPrefix(), name)}',
     templateUrl: './${getFileName(name, '.component.html')}',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -39,7 +39,7 @@ export class ${getComponentClassName(name)} {
 `;
 }
 
-function getModuleTemplate(prefix: string[], name: string[]) {
+function getModuleTemplate(name: string[]) {
     return `import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 
@@ -54,12 +54,12 @@ import {CommonModule} from '@angular/common';
         CommonModule,
     ],
 })
-export class ${getModuleClassName(prefix, name)} {};
+export class ${getModuleClassName(getPrefix(), name)} {};
 `;
 }
 
-function getDirectiveTemplate(prefix: string[], name: string[]) {
-    const directiveSelector = camelCase(prefix.concat(name), false);
+function getDirectiveTemplate(name: string[]) {
+    const directiveSelector = camelCase(getPrefix().concat(name), false);
     return `import {Directive} from '@angular/core';
 
 @Directive({
@@ -88,7 +88,7 @@ function getDirectiveClassName(nameParts: string[]): string {
     return camelCase(nameParts, true) + 'Directive';
 }
 
-async function createModule(prefix: string[], name: string[], inFolder: string): Promise<void> {
+async function createModule(name: string[], inFolder: string): Promise<void> {
     const containingFolder = path.join(inFolder, getFolderName(name));
 
     if (await doesFileExist(containingFolder)) {
@@ -96,12 +96,12 @@ async function createModule(prefix: string[], name: string[], inFolder: string):
     }
     const modulePath = path.join(containingFolder, getFileName(name, '.module.ts'));
     await makeFolder(containingFolder);
-    await writeFile(modulePath, getModuleTemplate(prefix, name));
+    await writeFile(modulePath, getModuleTemplate(name));
     const textDoc = await vscode.workspace.openTextDocument(modulePath);
     await vscode.window.showTextDocument(textDoc);
 }
 
-async function createComponent(prefix: string[], name: string[], inFolder: string): Promise<void> {
+async function createComponent(name: string[], inFolder: string): Promise<void> {
     const containingFolder = path.join(inFolder, getFolderName(name));
 
     if (await doesFileExist(containingFolder)) {
@@ -112,7 +112,7 @@ async function createComponent(prefix: string[], name: string[], inFolder: strin
     const templatePath = path.join(containingFolder, getFileName(name, '.component.html'));
     const stylesheetPath = path.join(containingFolder, getFileName(name, '.component.less'));
     await Promise.all([
-        writeFile(componentPath, getComponentTemplate(prefix, name)),
+        writeFile(componentPath, getComponentTemplate(name)),
         writeFile(templatePath, getHTMLTemplate(name)),
         writeFile(stylesheetPath, lessTemplate),
     ]);
@@ -120,13 +120,13 @@ async function createComponent(prefix: string[], name: string[], inFolder: strin
     await vscode.window.showTextDocument(textDoc);
 }
 
-async function createDirective(prefix: string[], name: string[], inFolder: string): Promise<void> {
+async function createDirective(name: string[], inFolder: string): Promise<void> {
     const directivePath = path.join(inFolder, getFileName(name, '.directive.ts'));
 
     if (await doesFileExist(directivePath)) {
         throw new Error(`File with name ${directivePath} already exists`);
     }
-    await writeFile(directivePath, getDirectiveTemplate(prefix, name));
+    await writeFile(directivePath, getDirectiveTemplate(name));
     const textDoc = await vscode.workspace.openTextDocument(directivePath);
     await vscode.window.showTextDocument(textDoc);
 }
@@ -221,8 +221,7 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
         exampleName: 'TestComponent FooBarComponent',
     });
     const name = getComponentNameParts(componentName);
-    const prefix = getPrefix();
-    await createComponent(prefix, name, uri.fsPath);
+    await createComponent(name, uri.fsPath);
     const modules = await findModules(uri.fsPath);
     if (modules.length) {
         await promptUserForModuleToAddClassTo({modules, name, inFolder: uri.fsPath, fileType: FileType.Component});
@@ -230,8 +229,6 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
 }
 
 async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
-    const prefix = getPrefix();
-
     const directiveName = await promptUserForClassName({
         defaultName: 'NewDirective',
         prompt: 'Name of directive class',
@@ -242,7 +239,7 @@ async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
         name.pop();
     }
 
-    await createDirective(prefix, name, uri.fsPath);
+    await createDirective(name, uri.fsPath);
     const modules = await findModules(uri.fsPath);
     if (modules.length) {
         await promptUserForModuleToAddClassTo({modules, name, inFolder: uri.fsPath, fileType: FileType.Directive});
@@ -250,8 +247,6 @@ async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
 }
 
 async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
-    const prefix = getPrefix();
-
     const moduleName = await promptUserForClassName({
         defaultName: 'NewModule',
         prompt: 'Name of module class',
@@ -263,11 +258,12 @@ async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
         name.pop();
     }
 
+    const prefix = getPrefix();
     if (prefix.every((part, index) => name[index] === part)) {
         name.splice(0, prefix.length);
     }
 
-    await createModule(prefix, name, uri.fsPath);
+    await createModule(name, uri.fsPath);
 }
 
 async function runWithErrorLogging(runCommand: (uri: vscode.Uri) => Promise<void>, uri: vscode.Uri): Promise<void> {
