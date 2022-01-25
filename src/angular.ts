@@ -81,10 +81,6 @@ function getFileName(nameParts: string[], ext: string): string {
     return getFolderName(nameParts) + ext;
 }
 
-function getModuleName(nameParts: string[]): string {
-    return getFolderName(nameParts) + '.module.ts';
-}
-
 function getClassName(nameParts: string[]): string {
     return camelCase(nameParts, true) + 'Component';
 }
@@ -103,7 +99,7 @@ async function createModule(prefix: string[], name: string[], inFolder: string):
     if (await doesFileExist(containingFolder)) {
         throw new Error('Folder with name ' + containingFolder + ' already exists');
     }
-    const modulePath = path.join(containingFolder, getModuleName(name));
+    const modulePath = path.join(containingFolder, getFileName(name, '.module.ts'));
     await makeFolder(containingFolder);
     await writeFile(modulePath, getModuleTemplate(prefix, name));
     const textDoc = await vscode.workspace.openTextDocument(modulePath);
