@@ -190,7 +190,15 @@ function checkAddToModule(modules: string[], name: string[], inFolder: string, f
     );
 }
 
-async function promptUserForClassName(defaultName: string, prompt: string, exampleName: string): Promise<string> {
+async function promptUserForClassName({
+    defaultName,
+    prompt,
+    exampleName,
+}: {
+    defaultName: string;
+    prompt: string;
+    exampleName: string;
+}): Promise<string> {
     const result = await vscode.window.showInputBox({
         prompt: prompt,
         value: defaultName,
@@ -213,11 +221,11 @@ async function promptUserForClassName(defaultName: string, prompt: string, examp
 }
 
 async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
-    const componentName = await promptUserForClassName(
-        'NewComponent',
-        'Name of component class',
-        'TestComponent FooBarComponent',
-    );
+    const componentName = await promptUserForClassName({
+        defaultName: 'NewComponent',
+        prompt: 'Name of component class',
+        exampleName: 'TestComponent FooBarComponent',
+    });
     const name = getComponentNameParts(componentName);
     const prefix = getPrefix();
     await createComponent(prefix, name, uri.fsPath);
@@ -230,11 +238,11 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
 async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
     const prefix = getPrefix();
 
-    const directiveName = await promptUserForClassName(
-        'NewDirective',
-        'Name of directive class',
-        'TestDirective, FooBarDirective',
-    );
+    const directiveName = await promptUserForClassName({
+        defaultName: 'NewDirective',
+        prompt: 'Name of directive class',
+        exampleName: 'TestDirective, FooBarDirective',
+    });
     const name = getNameParts(directiveName);
     if (name[name.length - 1] === 'directive') {
         name.pop();
@@ -250,7 +258,11 @@ async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
 async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
     const prefix = getPrefix();
 
-    const moduleName = await promptUserForClassName('NewModule', 'Name of module class', 'TestModule FooBarModule');
+    const moduleName = await promptUserForClassName({
+        defaultName: 'NewModule',
+        prompt: 'Name of module class',
+        exampleName: 'TestModule FooBarModule',
+    });
     const name = getNameParts(moduleName);
 
     if (name[name.length - 1] === 'module') {
