@@ -268,6 +268,33 @@ async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
     }
 }
 
+async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
+    if (!uri.fsPath) {
+        vscode.window.showErrorMessage('No folder selected to contain new module');
+        return;
+    }
+
+    try {
+        const prefix = getPrefix();
+
+        const moduleName = await getNameOfObject('NewModule', 'Name of module class', 'TestModule FooBarModule');
+        const name = getNameParts(moduleName);
+
+        if (name[name.length - 1] === 'module') {
+            name.pop();
+        }
+
+        if (prefix.every((part, index) => name[index] === part)) {
+            name.splice(0, prefix.length);
+        }
+
+        await createModule(prefix, name, uri.fsPath);
+    } catch (err) {
+        vscode.window.showErrorMessage(err.toString());
+        console.error(err);
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
     const createComponentListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-component',
@@ -283,33 +310,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const createModuleListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-module',
-        (uri: vscode.Uri) => {
-            if (!uri.fsPath) {
-                vscode.window.showErrorMessage('No folder selected to contain new module');
-                return;
-            }
-
-            const prefix = getPrefix();
-
-            getNameOfObject('NewModule', 'Name of module class', 'TestModule FooBarModule')
-                .then((moduleName) => {
-                    const name = getNameParts(moduleName);
-
-                    if (name[name.length - 1] === 'module') {
-                        name.pop();
-                    }
-
-                    if (prefix.every((part, index) => name[index] === part)) {
-                        name.splice(0, prefix.length);
-                    }
-
-                    return createModule(prefix, name, uri.fsPath);
-                })
-                .catch((err) => {
-                    vscode.window.showErrorMessage(err.toString());
-                    console.error(err);
-                });
-        },
+        (uri: vscode.Uri) => runCreateModuleCommand(uri),
     );
     context.subscriptions.push(createModuleListener);
 }
