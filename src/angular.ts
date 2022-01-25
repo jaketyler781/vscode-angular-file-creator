@@ -35,7 +35,7 @@ function getComponentTemplate(prefix: string[], name: string[]) {
     templateUrl: './${getFileName(name, '.component.html')}',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ${getClassName(name)} {
+export class ${getComponentClassName(name)} {
     // TODO implement component
 }
 `;
@@ -82,7 +82,7 @@ function getFileName(nameParts: string[], ext: string): string {
     return getFolderName(nameParts) + ext;
 }
 
-function getClassName(nameParts: string[]): string {
+function getComponentClassName(nameParts: string[]): string {
     return camelCase(nameParts, true) + 'Component';
 }
 
@@ -137,7 +137,7 @@ async function addToModule(moduleUri: string, name: string[], inFolder: string, 
     const module = new ModuleModifier(moduleUri);
     const containingFolder = path.join(inFolder, getFolderName(name));
     const extension = fileType === FileType.Component ? '.component' : '.directive';
-    const className = fileType === FileType.Component ? getClassName(name) : getDirectiveClassName(name);
+    const className = fileType === FileType.Component ? getComponentClassName(name) : getDirectiveClassName(name);
 
     const result = await module.addImport(
         [className],
