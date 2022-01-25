@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
-import {writeFile, findModules, ensureDot} from './file';
+import {writeFile, findModules, ensureDot, doesFileExist} from './file';
 import {getComponentNameParts, getSelectorName, getPrefix, getModuleClassName} from './naming';
 
 export function toLowerCamelCase(upperCamelCase: string): string {
@@ -12,10 +11,13 @@ export function autoProvidesPath(filename: string, tsProjectDir: string): string
     return ensureDot(path.join(path.relative(path.dirname(filename), tsProjectDir), 'autoprovides.generated'));
 }
 
-export function findTsProject(filename: string): string | null {
+export async function findTsProject(filename: string): Promise<string | null> {
     const dir = path.dirname(filename);
 
-    if (fs.existsSync(path.join(dir, 'tsconfig.json')) || fs.existsSync(path.join(dir, 'tsconfig.src.json'))) {
+    if (
+        (await doesFileExist(path.join(dir, 'tsconfig.json'))) ||
+        (await doesFileExist(path.join(dir, 'tsconfig.src.json')))
+    ) {
         return dir;
     } else if (dir === '.') {
         return null;
@@ -279,14 +281,15 @@ export function activate(context: vscode.ExtensionContext) {
             try {
                 const componentPath = uri.fsPath.slice(0, -3) + '.spec.ts';
 
-                if (fs.existsSync(componentPath)) {
+                const testFileAlreadyExists = await doesFileExist(componentPath);
+                if (testFileAlreadyExists) {
                     vscode.window.showErrorMessage(`A test file with the name ${componentPath} already exists`);
                     return;
                 }
 
                 const classMetadata = await findPrimaryExport(uri.fsPath);
                 const className = classMetadata.name;
-                const tsProjectDir = findTsProject(uri.fsPath);
+                const tsProjectDir = await findTsProject(uri.fsPath);
                 const filename = uri.fsPath;
                 let testContent = '';
 
