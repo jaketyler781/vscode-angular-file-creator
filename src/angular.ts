@@ -160,7 +160,7 @@ async function addToModule(moduleUri: string, name: string[], inFolder: string, 
     }
 }
 
-function promptUserForModuleToAddClassTo({
+async function promptUserForModuleToAddClassTo({
     modules,
     name,
     inFolder,
@@ -173,22 +173,15 @@ function promptUserForModuleToAddClassTo({
 }): Promise<void> {
     const relativeModules = modules.map((mod) => path.relative(inFolder, mod));
     relativeModules.push('Do not add to a module');
-    return Promise.resolve(
-        vscode.window
-            .showQuickPick(relativeModules, {
-                placeHolder: 'Add to module',
-            })
-            .then((selectResult) => {
-                if (!selectResult) {
-                    return;
-                }
-                const moduleIndex = relativeModules.indexOf(selectResult);
+    const selectResult = await vscode.window.showQuickPick(relativeModules, {placeHolder: 'Add to module'});
+    if (!selectResult) {
+        return;
+    }
+    const moduleIndex = relativeModules.indexOf(selectResult);
 
-                if (moduleIndex >= 0 && moduleIndex < modules.length) {
-                    return addToModule(modules[moduleIndex], name, inFolder, fileType);
-                }
-            }),
-    );
+    if (moduleIndex >= 0 && moduleIndex < modules.length) {
+        await addToModule(modules[moduleIndex], name, inFolder, fileType);
+    }
 }
 
 async function promptUserForClassName({
