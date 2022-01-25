@@ -160,7 +160,17 @@ async function addToModule(moduleUri: string, name: string[], inFolder: string, 
     }
 }
 
-function checkAddToModule(modules: string[], name: string[], inFolder: string, fileType: FileType): Promise<void> {
+function promptUserForModuleToAddClassTo({
+    modules,
+    name,
+    inFolder,
+    fileType,
+}: {
+    modules: string[];
+    name: string[];
+    inFolder: string;
+    fileType: FileType;
+}): Promise<void> {
     const relativeModules = modules.map((mod) => path.relative(inFolder, mod));
     relativeModules.push('Do not add to a module');
     return Promise.resolve(
@@ -222,7 +232,7 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
     await createComponent(prefix, name, uri.fsPath);
     const modules = await findModules(uri.fsPath);
     if (modules.length) {
-        await checkAddToModule(modules, name, uri.fsPath, FileType.Component);
+        await promptUserForModuleToAddClassTo({modules, name, inFolder: uri.fsPath, fileType: FileType.Component});
     }
 }
 
@@ -242,7 +252,7 @@ async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
     await createDirective(prefix, name, uri.fsPath);
     const modules = await findModules(uri.fsPath);
     if (modules.length) {
-        await checkAddToModule(modules, name, uri.fsPath, FileType.Directive);
+        await promptUserForModuleToAddClassTo({modules, name, inFolder: uri.fsPath, fileType: FileType.Directive});
     }
 }
 
