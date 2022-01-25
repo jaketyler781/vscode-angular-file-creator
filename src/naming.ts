@@ -1,5 +1,11 @@
 import * as vscode from 'vscode';
 
+export enum FileType {
+    Component = 'component',
+    Directive = 'directive',
+    Module = 'module',
+}
+
 export function camelCase(nameParts: string[], capitalizeFirst: boolean) {
     return nameParts
         .map(
@@ -16,6 +22,17 @@ export function getNameParts(name: string): string[] {
         .split('\n')
         .map((part) => part.toLowerCase())
         .filter((a) => a.length > 0);
+}
+
+export function trimClassNameParts(nameParts: string[], fileType: FileType): string[] {
+    if (nameParts[nameParts.length - 1] === fileType) {
+        nameParts.pop();
+    }
+    const prefix = getPrefix();
+    if (prefix.every((part, index) => nameParts[index] === part)) {
+        nameParts.splice(0, prefix.length);
+    }
+    return nameParts;
 }
 
 export function getComponentNameParts(componentName: string): string[] {

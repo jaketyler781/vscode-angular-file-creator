@@ -4,15 +4,18 @@ import * as path from 'path';
 
 import {writeFile, findModules, makeFolder, doesFileExist} from './file';
 import {ModuleModifier} from './modulemodifier';
-import {getNameParts, getComponentNameParts, getSelectorName, getPrefix, camelCase, getModuleClassName} from './naming';
+import {
+    getNameParts,
+    getComponentNameParts,
+    getSelectorName,
+    getPrefix,
+    camelCase,
+    getModuleClassName,
+    trimClassNameParts,
+    FileType,
+} from './naming';
 
 const InvalidCharacterRegex = /[^\w\d_]|^\d/i;
-
-enum FileType {
-    Component = 'component',
-    Directive = 'directive',
-    Module = 'module',
-}
 
 const lessTemplate = `
 // TODO write style code
@@ -245,17 +248,6 @@ async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
     if (modules.length) {
         await promptUserForModuleToAddClassTo({modules, name, inFolder: uri.fsPath, fileType: FileType.Directive});
     }
-}
-
-function trimClassNameParts(nameParts: string[], fileType: FileType): string[] {
-    if (nameParts[nameParts.length - 1] === fileType) {
-        nameParts.pop();
-    }
-    const prefix = getPrefix();
-    if (prefix.every((part, index) => nameParts[index] === part)) {
-        nameParts.splice(0, prefix.length);
-    }
-    return nameParts;
 }
 
 async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
