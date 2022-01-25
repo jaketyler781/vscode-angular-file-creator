@@ -61,11 +61,12 @@ export class ${getModuleClassName(prefix, name)} {};
 }
 
 function getDirectiveTemplate(prefix: string[], name: string[]) {
+    const directiveSelector = camelCase(prefix.concat(name), false);
     return `import {Directive} from '@angular/core';
 
 @Directive({
     moduleId: module.id,
-    selector: '${getDirectiveSelectorName(prefix, name)}',
+    selector: '${directiveSelector}',
 })
 export class ${getDirectiveClassName(name)} {
     // TODO implement directive
@@ -83,10 +84,6 @@ function getFileName(nameParts: string[], ext: string): string {
 
 function getClassName(nameParts: string[]): string {
     return camelCase(nameParts, true) + 'Component';
-}
-
-function getDirectiveSelectorName(prefix: string[], nameParts: string[]): string {
-    return camelCase(prefix.concat(nameParts), false);
 }
 
 function getDirectiveClassName(nameParts: string[]): string {
