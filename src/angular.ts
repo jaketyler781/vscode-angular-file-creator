@@ -13,11 +13,9 @@ enum FileType {
     Directive,
 }
 
-function getLessTemplate(name: string[]) {
-    return `
+const lessTemplate = `
 // TODO write style code
 `;
-}
 
 function getHTMLTemplate(name: string[]) {
     return `<link rel="stylesheet" type="text/css" href="${getFileName(name, '.component.css')}">
@@ -116,7 +114,7 @@ async function createComponent(prefix: string[], name: string[], inFolder: strin
     await Promise.all([
         writeFile(componentPath, getComponentTemplate(prefix, name)),
         writeFile(templatePath, getHTMLTemplate(name)),
-        writeFile(stylesheetPath, getLessTemplate(name)),
+        writeFile(stylesheetPath, lessTemplate),
     ]);
     const textDoc = await vscode.workspace.openTextDocument(componentPath);
     await vscode.window.showTextDocument(textDoc);
