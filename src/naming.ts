@@ -35,16 +35,6 @@ export function trimClassNameParts(nameParts: string[], fileType: FileType): str
     return nameParts;
 }
 
-export function getComponentNameParts(componentName: string): string[] {
-    const nameParts = getNameParts(componentName);
-
-    if (nameParts[nameParts.length - 1] === 'component') {
-        nameParts.pop();
-    }
-
-    return nameParts;
-}
-
 export function getSelectorName(prefix: string[], nameParts: string[]): string {
     if (prefix.length) {
         return `${prefix.join('-')}-${nameParts.join('-')}`;

@@ -6,7 +6,6 @@ import {writeFile, findModules, makeFolder, doesFileExist} from './file';
 import {ModuleModifier} from './modulemodifier';
 import {
     getNameParts,
-    getComponentNameParts,
     getSelectorName,
     getPrefix,
     camelCase,
@@ -224,7 +223,7 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
         prompt: 'Name of component class',
         exampleName: 'TestComponent FooBarComponent',
     });
-    const name = getComponentNameParts(componentName);
+    const name = trimClassNameParts(getNameParts(componentName), FileType.Component);
     await createComponent(name, uri.fsPath);
     const modules = await findModules(uri.fsPath);
     if (modules.length) {
