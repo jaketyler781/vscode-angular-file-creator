@@ -1,9 +1,8 @@
 'use strict';
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as path from 'path';
 
-import {writeFile, findModules, makeFolder} from './file';
+import {writeFile, findModules, makeFolder, doesFileExist} from './file';
 import {ModuleModifier} from './modulemodifier';
 import {getNameParts, getComponentNameParts, getSelectorName, getPrefix, camelCase, getModuleClassName} from './naming';
 
@@ -101,8 +100,8 @@ function getDirectiveClassName(nameParts: string[]): string {
 async function createModule(prefix: string[], name: string[], inFolder: string): Promise<void> {
     const containingFolder = path.join(inFolder, getFolderName(name));
 
-    if (fs.existsSync(containingFolder)) {
-        throw new Error('File or folder with name ' + containingFolder + ' already exists');
+    if (await doesFileExist(containingFolder)) {
+        throw new Error('Folder with name ' + containingFolder + ' already exists');
     }
     const modulePath = path.join(containingFolder, getModuleName(name));
     await makeFolder(containingFolder);
@@ -114,8 +113,8 @@ async function createModule(prefix: string[], name: string[], inFolder: string):
 async function createComponent(prefix: string[], name: string[], inFolder: string): Promise<void> {
     const containingFolder = path.join(inFolder, getFolderName(name));
 
-    if (fs.existsSync(containingFolder)) {
-        throw new Error('File or folder with name ' + containingFolder + ' already exists');
+    if (await doesFileExist(containingFolder)) {
+        throw new Error('Folder with name ' + containingFolder + ' already exists');
     }
     await makeFolder(containingFolder);
     const componentPath = path.join(containingFolder, getFileName(name, '.component.ts'));
@@ -133,7 +132,7 @@ async function createComponent(prefix: string[], name: string[], inFolder: strin
 async function createDirective(prefix: string[], name: string[], inFolder: string): Promise<void> {
     const directivePath = path.join(inFolder, getFileName(name, '.directive.ts'));
 
-    if (fs.existsSync(directivePath)) {
+    if (await doesFileExist(directivePath)) {
         throw new Error(`File with name ${directivePath} already exists`);
     }
     await writeFile(directivePath, getDirectiveTemplate(prefix, name));

@@ -2,6 +2,16 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
+export async function doesFileExist(filePath: string): Promise<boolean> {
+    try {
+        const uri = vscode.Uri.parse(filePath);
+        await vscode.workspace.fs.stat(uri);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 export async function writeFile(path: string, content: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
         fs.writeFile(path, content, (err) => {
