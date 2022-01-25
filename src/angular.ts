@@ -190,7 +190,7 @@ function checkAddToModule(modules: string[], name: string[], inFolder: string, f
     );
 }
 
-async function getNameOfObject(defaultName: string, prompt: string, exampleName: string): Promise<string> {
+async function promptUserForClassName(defaultName: string, prompt: string, exampleName: string): Promise<string> {
     const result = await vscode.window.showInputBox({
         prompt: prompt,
         value: defaultName,
@@ -213,7 +213,7 @@ async function getNameOfObject(defaultName: string, prompt: string, exampleName:
 }
 
 async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
-    const componentName = await getNameOfObject(
+    const componentName = await promptUserForClassName(
         'NewComponent',
         'Name of component class',
         'TestComponent FooBarComponent',
@@ -230,7 +230,7 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
 async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
     const prefix = getPrefix();
 
-    const directiveName = await getNameOfObject(
+    const directiveName = await promptUserForClassName(
         'NewDirective',
         'Name of directive class',
         'TestDirective, FooBarDirective',
@@ -250,7 +250,7 @@ async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
 async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
     const prefix = getPrefix();
 
-    const moduleName = await getNameOfObject('NewModule', 'Name of module class', 'TestModule FooBarModule');
+    const moduleName = await promptUserForClassName('NewModule', 'Name of module class', 'TestModule FooBarModule');
     const name = getNameParts(moduleName);
 
     if (name[name.length - 1] === 'module') {
