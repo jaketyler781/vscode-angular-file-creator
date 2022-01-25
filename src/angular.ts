@@ -238,6 +238,36 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
     }
 }
 
+async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
+    if (!uri.fsPath) {
+        vscode.window.showErrorMessage('No folder selected to contain new directive');
+        return;
+    }
+
+    try {
+        const prefix = getPrefix();
+
+        const directiveName = await getNameOfObject(
+            'NewDirective',
+            'Name of directive class',
+            'TestDirective, FooBarDirective',
+        );
+        const name = getNameParts(directiveName);
+        if (name[name.length - 1] === 'directive') {
+            name.pop();
+        }
+
+        await createDirective(prefix, name, uri.fsPath);
+        const modules = await findModules(uri.fsPath);
+        if (modules.length) {
+            await checkAddToModule(modules, name, uri.fsPath, FileType.Directive);
+        }
+    } catch (err) {
+        vscode.window.showErrorMessage(err.toString());
+        console.error(err);
+    }
+}
+
 export function activate(context: vscode.ExtensionContext) {
     const createComponentListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-component',
@@ -247,35 +277,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const createDirectiveListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-directive',
-        (uri: vscode.Uri) => {
-            if (!uri.fsPath) {
-                vscode.window.showErrorMessage('No folder selected to contain new directive');
-                return;
-            }
-
-            const prefix = getPrefix();
-
-            getNameOfObject('NewDirective', 'Name of directive class', 'TestDirective, FooBarDirective')
-                .then((directiveName) => {
-                    const name = getNameParts(directiveName);
-
-                    if (name[name.length - 1] === 'directive') {
-                        name.pop();
-                    }
-
-                    return createDirective(prefix, name, uri.fsPath).then(() => {
-                        return findModules(uri.fsPath).then((modules) => {
-                            if (modules.length) {
-                                return checkAddToModule(modules, name, uri.fsPath, FileType.Directive);
-                            }
-                        });
-                    });
-                })
-                .catch((err) => {
-                    vscode.window.showErrorMessage(err.toString());
-                    console.error(err);
-                });
-        },
+        (uri: vscode.Uri) => runCreateDirectiveCommand(uri),
     );
     context.subscriptions.push(createDirectiveListener);
 
