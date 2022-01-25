@@ -214,81 +214,65 @@ async function getNameOfObject(defaultName: string, prompt: string, exampleName:
 }
 
 async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
-    if (!uri.fsPath) {
-        vscode.window.showErrorMessage('No folder selected to contain new component');
-        return;
-    }
-
-    try {
-        const componentName = await getNameOfObject(
-            'NewComponent',
-            'Name of component class',
-            'TestComponent FooBarComponent',
-        );
-        const name = getComponentNameParts(componentName);
-        const prefix = getPrefix();
-        await createComponent(prefix, name, uri.fsPath);
-        const modules = await findModules(uri.fsPath);
-        if (modules.length) {
-            await checkAddToModule(modules, name, uri.fsPath, FileType.Component);
-        }
-    } catch (err) {
-        vscode.window.showErrorMessage(err.toString());
-        console.error(err);
+    const componentName = await getNameOfObject(
+        'NewComponent',
+        'Name of component class',
+        'TestComponent FooBarComponent',
+    );
+    const name = getComponentNameParts(componentName);
+    const prefix = getPrefix();
+    await createComponent(prefix, name, uri.fsPath);
+    const modules = await findModules(uri.fsPath);
+    if (modules.length) {
+        await checkAddToModule(modules, name, uri.fsPath, FileType.Component);
     }
 }
 
 async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
-    if (!uri.fsPath) {
-        vscode.window.showErrorMessage('No folder selected to contain new directive');
-        return;
+    const prefix = getPrefix();
+
+    const directiveName = await getNameOfObject(
+        'NewDirective',
+        'Name of directive class',
+        'TestDirective, FooBarDirective',
+    );
+    const name = getNameParts(directiveName);
+    if (name[name.length - 1] === 'directive') {
+        name.pop();
     }
 
-    try {
-        const prefix = getPrefix();
-
-        const directiveName = await getNameOfObject(
-            'NewDirective',
-            'Name of directive class',
-            'TestDirective, FooBarDirective',
-        );
-        const name = getNameParts(directiveName);
-        if (name[name.length - 1] === 'directive') {
-            name.pop();
-        }
-
-        await createDirective(prefix, name, uri.fsPath);
-        const modules = await findModules(uri.fsPath);
-        if (modules.length) {
-            await checkAddToModule(modules, name, uri.fsPath, FileType.Directive);
-        }
-    } catch (err) {
-        vscode.window.showErrorMessage(err.toString());
-        console.error(err);
+    await createDirective(prefix, name, uri.fsPath);
+    const modules = await findModules(uri.fsPath);
+    if (modules.length) {
+        await checkAddToModule(modules, name, uri.fsPath, FileType.Directive);
     }
 }
 
 async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
+    const prefix = getPrefix();
+
+    const moduleName = await getNameOfObject('NewModule', 'Name of module class', 'TestModule FooBarModule');
+    const name = getNameParts(moduleName);
+
+    if (name[name.length - 1] === 'module') {
+        name.pop();
+    }
+
+    if (prefix.every((part, index) => name[index] === part)) {
+        name.splice(0, prefix.length);
+    }
+
+    await createModule(prefix, name, uri.fsPath);
+}
+
+async function runWithErrorLogging(runCommand: (uri: vscode.Uri) => Promise<void>, uri: vscode.Uri): Promise<void> {
     if (!uri.fsPath) {
-        vscode.window.showErrorMessage('No folder selected to contain new module');
+        vscode.window.showErrorMessage('Must select a folder for creating new Angular files');
         return;
     }
 
     try {
-        const prefix = getPrefix();
-
-        const moduleName = await getNameOfObject('NewModule', 'Name of module class', 'TestModule FooBarModule');
-        const name = getNameParts(moduleName);
-
-        if (name[name.length - 1] === 'module') {
-            name.pop();
-        }
-
-        if (prefix.every((part, index) => name[index] === part)) {
-            name.splice(0, prefix.length);
-        }
-
-        await createModule(prefix, name, uri.fsPath);
+        await runCommand(uri);
     } catch (err) {
         vscode.window.showErrorMessage(err.toString());
         console.error(err);
@@ -298,19 +282,19 @@ async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
 export function activate(context: vscode.ExtensionContext) {
     const createComponentListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-component',
-        (uri: vscode.Uri) => runCreateComponentCommand(uri),
+        (uri: vscode.Uri) => runWithErrorLogging(runCreateComponentCommand, uri),
     );
     context.subscriptions.push(createComponentListener);
 
     const createDirectiveListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-directive',
-        (uri: vscode.Uri) => runCreateDirectiveCommand(uri),
+        (uri: vscode.Uri) => runWithErrorLogging(runCreateDirectiveCommand, uri),
     );
     context.subscriptions.push(createDirectiveListener);
 
     const createModuleListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-module',
-        (uri: vscode.Uri) => runCreateModuleCommand(uri),
+        (uri: vscode.Uri) => runWithErrorLogging(runCreateModuleCommand, uri),
     );
     context.subscriptions.push(createModuleListener);
 }
