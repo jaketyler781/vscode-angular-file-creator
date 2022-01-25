@@ -266,7 +266,8 @@ async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
 }
 
 async function runWithErrorLogging(runCommand: (uri: vscode.Uri) => Promise<void>, uri: vscode.Uri): Promise<void> {
-    if (!uri.fsPath) {
+    const fileStat = await vscode.workspace.fs.stat(uri);
+    if (fileStat.type !== vscode.FileType.Directory) {
         vscode.window.showErrorMessage('Must select a folder for creating new Angular files');
         return;
     }
