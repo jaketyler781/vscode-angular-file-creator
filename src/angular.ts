@@ -94,26 +94,14 @@ function getClassName(nameParts: string[], fileType: FileType): string {
     }
 }
 
-async function createModule(name: string[], inFolder: string): Promise<void> {
-    const containingFolder = path.join(inFolder, getFolderName(name));
-
-    if (await doesFileExist(containingFolder)) {
-        throw new Error('Folder with name ' + containingFolder + ' already exists');
-    }
+async function createModule(name: string[], containingFolder: string): Promise<void> {
     const modulePath = path.join(containingFolder, getFileName(name, '.module.ts'));
-    await makeFolder(containingFolder);
     await writeFile(modulePath, getModuleTemplate(name));
     const textDoc = await vscode.workspace.openTextDocument(modulePath);
     await vscode.window.showTextDocument(textDoc);
 }
 
-async function createComponent(name: string[], inFolder: string): Promise<void> {
-    const containingFolder = path.join(inFolder, getFolderName(name));
-
-    if (await doesFileExist(containingFolder)) {
-        throw new Error('Folder with name ' + containingFolder + ' already exists');
-    }
-    await makeFolder(containingFolder);
+async function createComponent(name: string[], containingFolder: string): Promise<void> {
     const componentPath = path.join(containingFolder, getFileName(name, '.component.ts'));
     const templatePath = path.join(containingFolder, getFileName(name, '.component.html'));
     const stylesheetPath = path.join(containingFolder, getFileName(name, '.component.less'));
@@ -227,10 +215,15 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
         exampleName: 'TestComponent FooBarComponent',
     });
     const name = trimClassNameParts(getNameParts(componentName), FileType.Component);
-    await createComponent(name, uri.fsPath);
+    const componentFolder = path.join(uri.fsPath, getFolderName(name));
+    if (await doesFileExist(componentFolder)) {
+        throw new Error('Folder with name ' + componentFolder + ' already exists');
+    }
+    await makeFolder(componentFolder);
+    await createComponent(name, componentFolder);
     const modules = await findModules(uri.fsPath);
     if (modules.length) {
-        await promptUserForModuleToAddClassTo({modules, name, inFolder: uri.fsPath, fileType: FileType.Component});
+        await promptUserForModuleToAddClassTo({modules, name, inFolder: componentFolder, fileType: FileType.Component});
     }
 }
 
@@ -259,7 +252,12 @@ async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
         exampleName: 'TestModule FooBarModule',
     });
     const name = trimClassNameParts(getNameParts(moduleName), FileType.Module);
-    await createModule(name, uri.fsPath);
+    const containingFolder = path.join(uri.fsPath, getFolderName(name));
+    if (await doesFileExist(containingFolder)) {
+        throw new Error('Folder with name ' + containingFolder + ' already exists');
+    }
+    await makeFolder(containingFolder);
+    await createModule(name, containingFolder);
 }
 
 async function runWithErrorLogging(runCommand: (uri: vscode.Uri) => Promise<void>, uri: vscode.Uri): Promise<void> {
