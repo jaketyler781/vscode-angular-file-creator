@@ -36,7 +36,7 @@ function getComponentTemplate(name: string[]) {
     templateUrl: './${getFileName(name, '.component.html')}',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ${getComponentClassName(name)} {
+export class ${getClassName(name, FileType.Component)} {
     // TODO implement component
 }
 `;
@@ -57,7 +57,7 @@ import {CommonModule} from '@angular/common';
         CommonModule,
     ],
 })
-export class ${getModuleClassName(getPrefix(), name)} {};
+export class ${getClassName(name, FileType.Module)} {};
 `;
 }
 
@@ -69,7 +69,7 @@ function getDirectiveTemplate(name: string[]) {
     moduleId: module.id,
     selector: '${directiveSelector}',
 })
-export class ${getDirectiveClassName(name)} {
+export class ${getClassName(name, FileType.Directive)} {
     // TODO implement directive
 }
 `;
@@ -83,12 +83,15 @@ function getFileName(nameParts: string[], ext: string): string {
     return getFolderName(nameParts) + ext;
 }
 
-function getComponentClassName(nameParts: string[]): string {
-    return camelCase(nameParts, true) + 'Component';
-}
-
-function getDirectiveClassName(nameParts: string[]): string {
-    return camelCase(nameParts, true) + 'Directive';
+function getClassName(nameParts: string[], fileType: FileType): string {
+    switch (fileType) {
+        case FileType.Component:
+            return camelCase(nameParts, true) + 'Component';
+        case FileType.Directive:
+            return camelCase(nameParts, true) + 'Directive';
+        case FileType.Module:
+            return getModuleClassName(getPrefix(), nameParts);
+    }
 }
 
 async function createModule(name: string[], inFolder: string): Promise<void> {
@@ -138,7 +141,7 @@ async function addToModule(moduleUri: string, name: string[], inFolder: string, 
     const module = new ModuleModifier(moduleUri);
     const containingFolder = path.join(inFolder, getFolderName(name));
     const extension = fileType === FileType.Component ? '.component' : '.directive';
-    const className = fileType === FileType.Component ? getComponentClassName(name) : getDirectiveClassName(name);
+    const className = getClassName(name, fileType);
 
     const result = await module.addImport(
         [className],
