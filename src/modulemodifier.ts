@@ -67,7 +67,7 @@ export class ModuleModifier {
         return (this.textDocument ??= await vscode.workspace.openTextDocument(this.moduleUri));
     }
 
-    async addImport(classNames: string[], typescriptPath: string, suffixGroup: string): Promise<boolean> {
+    public async addImport(classNames: string[], typescriptPath: string): Promise<boolean> {
         const textDocument = await this.loadModule();
 
         classNames.sort();
@@ -82,6 +82,7 @@ export class ModuleModifier {
         while ((match = importRegex.exec(text))) {
             const imports = match[1];
             const importFrom = match[2];
+            const suffixGroup = typescriptPath.substring(typescriptPath.lastIndexOf('.'));
             const suffixGroupMatch = importFrom.lastIndexOf(suffixGroup) === importFrom.length - suffixGroup.length;
             if (suffixGroupMatch) {
                 if (classNamesJoined < imports) {
@@ -109,6 +110,10 @@ export class ModuleModifier {
 
             if (importPath[0] !== '.') {
                 importPath = './' + importPath;
+            }
+            const tsExtension = '.ts';
+            if (importPath.endsWith(tsExtension)) {
+                importPath = importPath.substring(0, importPath.length - tsExtension.length);
             }
 
             const newlines = extraNewline ? '\n\n' : '\n';

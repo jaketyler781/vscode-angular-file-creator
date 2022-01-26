@@ -94,14 +94,15 @@ function getClassName(nameParts: string[], fileType: FileType): string {
     }
 }
 
-async function createModule(name: string[], containingFolder: string): Promise<void> {
+async function createModule(name: string[], containingFolder: string): Promise<string> {
     const modulePath = path.join(containingFolder, getFileName(name, '.module.ts'));
     await writeFile(modulePath, getModuleTemplate(name));
     const textDoc = await vscode.workspace.openTextDocument(modulePath);
     await vscode.window.showTextDocument(textDoc);
+    return modulePath;
 }
 
-async function createComponent(name: string[], containingFolder: string): Promise<void> {
+async function createComponent(name: string[], containingFolder: string): Promise<string> {
     const componentPath = path.join(containingFolder, getFileName(name, '.component.ts'));
     const templatePath = path.join(containingFolder, getFileName(name, '.component.html'));
     const stylesheetPath = path.join(containingFolder, getFileName(name, '.component.less'));
@@ -112,9 +113,10 @@ async function createComponent(name: string[], containingFolder: string): Promis
     ]);
     const textDoc = await vscode.workspace.openTextDocument(componentPath);
     await vscode.window.showTextDocument(textDoc);
+    return componentPath;
 }
 
-async function createDirective(name: string[], inFolder: string): Promise<void> {
+async function createDirective(name: string[], inFolder: string): Promise<string> {
     const directivePath = path.join(inFolder, getFileName(name, '.directive.ts'));
 
     if (await doesFileExist(directivePath)) {
@@ -123,20 +125,12 @@ async function createDirective(name: string[], inFolder: string): Promise<void> 
     await writeFile(directivePath, getDirectiveTemplate(name));
     const textDoc = await vscode.workspace.openTextDocument(directivePath);
     await vscode.window.showTextDocument(textDoc);
+    return directivePath;
 }
 
-async function addToModule(moduleUri: string, name: string[], inFolder: string, fileType: FileType): Promise<void> {
+async function addToModule(moduleUri: string, className: string, classAbsolutePath: string): Promise<void> {
     const module = new ModuleModifier(moduleUri);
-    const containingFolder = path.join(inFolder, getFolderName(name));
-    const extension = fileType === FileType.Component ? '.component' : '.directive';
-    const className = getClassName(name, fileType);
-
-    const result = await module.addImport(
-        [className],
-        path.join(containingFolder, getFileName(name, extension)),
-        extension,
-    );
-
+    const result = await module.addImport([className], classAbsolutePath);
     if (!result) {
         vscode.window.showWarningMessage('Could not add import to module');
     }
@@ -154,28 +148,38 @@ async function addToModule(moduleUri: string, name: string[], inFolder: string, 
     }
 }
 
+enum AddToModule {
+    DoNot = 'Do not add to a module',
+    CreateNew = 'Create new module',
+}
+
 async function promptUserForModuleToAddClassTo({
-    modules,
+    classAbsolutePath,
     name,
     inFolder,
     fileType,
 }: {
-    modules: string[];
+    classAbsolutePath: string;
     name: string[];
     inFolder: string;
     fileType: FileType;
 }): Promise<void> {
-    const relativeModules = modules.map((mod) => path.relative(inFolder, mod));
-    relativeModules.push('Do not add to a module');
+    const modules = await findModules(inFolder);
+    const relativeModules = [
+        AddToModule.CreateNew,
+        ...modules.map((mod) => path.relative(inFolder, mod)),
+        AddToModule.DoNot,
+    ];
     const selectResult = await vscode.window.showQuickPick(relativeModules, {placeHolder: 'Add to module'});
-    if (!selectResult) {
+    if (!selectResult || selectResult === AddToModule.DoNot) {
         return;
     }
-    const moduleIndex = relativeModules.indexOf(selectResult);
-
-    if (moduleIndex >= 0 && moduleIndex < modules.length) {
-        await addToModule(modules[moduleIndex], name, inFolder, fileType);
-    }
+    const moduleAbsolutePath =
+        selectResult === AddToModule.CreateNew
+            ? await createModule(name, inFolder)
+            : path.resolve(inFolder, selectResult);
+    const className = getClassName(name, fileType);
+    await addToModule(moduleAbsolutePath, className, classAbsolutePath);
 }
 
 async function promptUserForClassName({
@@ -220,11 +224,13 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
         throw new Error('Folder with name ' + componentFolder + ' already exists');
     }
     await makeFolder(componentFolder);
-    await createComponent(name, componentFolder);
-    const modules = await findModules(uri.fsPath);
-    if (modules.length) {
-        await promptUserForModuleToAddClassTo({modules, name, inFolder: componentFolder, fileType: FileType.Component});
-    }
+    const componentAbsolutePath = await createComponent(name, componentFolder);
+    await promptUserForModuleToAddClassTo({
+        name,
+        inFolder: componentFolder,
+        fileType: FileType.Component,
+        classAbsolutePath: componentAbsolutePath,
+    });
 }
 
 async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
@@ -238,11 +244,13 @@ async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
         name.pop();
     }
 
-    await createDirective(name, uri.fsPath);
-    const modules = await findModules(uri.fsPath);
-    if (modules.length) {
-        await promptUserForModuleToAddClassTo({modules, name, inFolder: uri.fsPath, fileType: FileType.Directive});
-    }
+    const directiveAbsolutePath = await createDirective(name, uri.fsPath);
+    await promptUserForModuleToAddClassTo({
+        name,
+        inFolder: uri.fsPath,
+        fileType: FileType.Directive,
+        classAbsolutePath: directiveAbsolutePath,
+    });
 }
 
 async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
