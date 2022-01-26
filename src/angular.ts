@@ -124,9 +124,9 @@ async function createDirective(name: string[], inFolder: string): Promise<string
 
 async function addToModule(moduleUri: string, className: string, classAbsolutePath: string): Promise<void> {
     const module = new ModuleModifier(moduleUri);
-    const successAddingImport = await module.addImport([className], classAbsolutePath);
-    const successAddingDeclaration = await module.addToModule('declarations', className);
     const successAddingExport = await module.addToModule('exports', className);
+    const successAddingDeclaration = await module.addToModule('declarations', className);
+    const successAddingImport = await module.addImport([className], classAbsolutePath);
     const successSaving = await module.save();
     const issues = [
         successAddingImport ? undefined : 'adding import',
