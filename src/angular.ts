@@ -43,19 +43,13 @@ export class ${getClassName(name, FileType.Component)} {
 }
 
 function getModuleTemplate(name: string[]) {
-    return `import {NgModule} from '@angular/core';
-import {CommonModule} from '@angular/common';
+    return `import {CommonModule} from '@angular/common';
+import {NgModule} from '@angular/core';
 
 @NgModule({
-    declarations: [
-    ],
-    entryComponents: [
-    ],
-    exports: [
-    ],
-    imports: [
-        CommonModule,
-    ],
+    declarations: [],
+    exports: [],
+    imports: [CommonModule],
 })
 export class ${getClassName(name, FileType.Module)} {};
 `;
