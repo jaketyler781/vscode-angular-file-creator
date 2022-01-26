@@ -122,62 +122,54 @@ export class ModuleModifier {
 
     public async addToModule(group: string, className: string): Promise<boolean> {
         const textDocument = await this.textDocumentPromise;
-
         const text = textDocument.getText();
         const moduleLocation = text.indexOf('@NgModule(');
+        if (moduleLocation === -1) {
+            return false;
+        }
 
-        if (moduleLocation !== -1) {
-            const contentStart = moduleLocation + '@NgModule'.length;
-            const contentEnd = stepOverBrackets(text, contentStart);
+        const contentStart = moduleLocation + '@NgModule'.length;
+        const contentEnd = stepOverBrackets(text, contentStart);
+        const moduleContent = text.substring(contentStart, contentEnd);
+        const groupRegex = new RegExp(group + '\\s*:\\s*\\[', 'gm');
+        if (!groupRegex.test(moduleContent)) {
+            return false;
+        }
 
-            const moduleContent = text.substring(contentStart, contentEnd);
+        const arrayStart = groupRegex.lastIndex - 1;
+        const arrayEnd = stepOverBrackets(moduleContent, arrayStart);
+        const currentModules = moduleContent
+            .substring(arrayStart + 1, arrayEnd - 1)
+            .split(',')
+            .map((name) => name.trim())
+            .filter((name) => name.length);
 
-            const groupRegex = new RegExp(group + '\\s*:\\s*\\[', 'gm');
-
-            if (groupRegex.test(moduleContent)) {
-                const arrayStart = groupRegex.lastIndex - 1;
-                const arrayEnd = stepOverBrackets(moduleContent, arrayStart);
-
-                const currentModules = moduleContent
-                    .substring(arrayStart + 1, arrayEnd - 1)
-                    .split(',')
-                    .map((name) => name.trim())
-                    .filter((name) => name.length);
-
-                let insertAt = 0;
-
-                for (insertAt = 0; insertAt < currentModules.length; ++insertAt) {
-                    if (className < currentModules[insertAt]) {
-                        break;
-                    }
-                }
-
-                let insertionPoint = 0;
-                let extraTab = false;
-
-                if (insertAt === currentModules.length) {
-                    insertionPoint = arrayEnd - 1;
-                    extraTab = true;
-                } else {
-                    insertionPoint = moduleContent.indexOf(currentModules[insertAt], arrayStart);
-                }
-
-                const leadingWhitespace = extraTab ? '    ' : '';
-                const trailingWhitespace = getLeadingWhitespace(moduleContent, insertionPoint);
-
-                insertionPoint += contentStart;
-
-                const edit = new vscode.WorkspaceEdit();
-                edit.insert(
-                    textDocument.uri,
-                    textDocument.positionAt(insertionPoint),
-                    leadingWhitespace + className + ',\n' + trailingWhitespace,
-                );
-                return vscode.workspace.applyEdit(edit);
+        let insertAt = 0;
+        for (insertAt = 0; insertAt < currentModules.length; ++insertAt) {
+            if (className < currentModules[insertAt]) {
+                break;
             }
         }
 
-        return false;
+        let insertionPoint = 0;
+        let extraTab = false;
+        if (insertAt === currentModules.length) {
+            insertionPoint = arrayEnd - 1;
+            extraTab = true;
+        } else {
+            insertionPoint = moduleContent.indexOf(currentModules[insertAt], arrayStart);
+        }
+
+        const leadingWhitespace = extraTab ? '    ' : '';
+        const trailingWhitespace = getLeadingWhitespace(moduleContent, insertionPoint);
+        insertionPoint += contentStart;
+        const edit = new vscode.WorkspaceEdit();
+        edit.insert(
+            textDocument.uri,
+            textDocument.positionAt(insertionPoint),
+            leadingWhitespace + className + ',\n' + trailingWhitespace,
+        );
+        return vscode.workspace.applyEdit(edit);
     }
 
     public async save(): Promise<boolean> {
