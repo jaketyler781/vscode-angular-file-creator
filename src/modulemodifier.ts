@@ -183,4 +183,9 @@ export class ModuleModifier {
 
         return false;
     }
+
+    public async save(): Promise<void> {
+        const textDocument = await this.loadModule();
+        await textDocument.save();
+    }
 }

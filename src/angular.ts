@@ -140,6 +140,7 @@ async function addToModule(moduleUri: string, className: string, classAbsolutePa
     if (!exportsAdd) {
         vscode.window.showWarningMessage('Could not add class to exports');
     }
+    await module.save();
 }
 
 enum AddToModule {
