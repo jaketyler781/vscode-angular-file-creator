@@ -180,8 +180,8 @@ export class ModuleModifier {
         return false;
     }
 
-    public async save(): Promise<void> {
+    public async save(): Promise<boolean> {
         const textDocument = await this.textDocumentPromise;
-        await textDocument.save();
+        return await textDocument.save();
     }
 }

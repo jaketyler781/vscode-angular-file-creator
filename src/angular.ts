@@ -124,23 +124,20 @@ async function createDirective(name: string[], inFolder: string): Promise<string
 
 async function addToModule(moduleUri: string, className: string, classAbsolutePath: string): Promise<void> {
     const module = new ModuleModifier(moduleUri);
-    const result = await module.addImport([className], classAbsolutePath);
-    if (!result) {
-        vscode.window.showWarningMessage('Could not add import to module');
+    const successAddingImport = await module.addImport([className], classAbsolutePath);
+    const successAddingDeclaration = await module.addToModule('declarations', className);
+    const successAddingExport = await module.addToModule('exports', className);
+    const successSaving = await module.save();
+    const issues = [
+        successAddingImport ? undefined : 'adding import',
+        successAddingDeclaration ? undefined : 'adding declaration',
+        successAddingExport ? undefined : 'adding export',
+        successSaving ? undefined : 'saving file',
+    ].filter((text): text is string => !!text);
+    if (issues.length > 0) {
+        // Only show warning instead of error since most of the command completed successfully before adding to module
+        vscode.window.showWarningMessage('Failed modifying the module file: ' + issues.join(','));
     }
-
-    const declarationAdd = await module.addToModule('declarations', className);
-
-    if (!declarationAdd) {
-        vscode.window.showWarningMessage('Could not add class to declarations');
-    }
-
-    const exportsAdd = await module.addToModule('exports', className);
-
-    if (!exportsAdd) {
-        vscode.window.showWarningMessage('Could not add class to exports');
-    }
-    await module.save();
 }
 
 enum AddToModule {
