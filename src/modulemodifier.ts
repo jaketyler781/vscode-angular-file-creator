@@ -63,7 +63,7 @@ export class ModuleModifier {
 
     constructor(private moduleUri: string) {}
 
-    async loadModule(): Promise<vscode.TextDocument> {
+    private async loadModule(): Promise<vscode.TextDocument> {
         return (this.textDocument ??= await vscode.workspace.openTextDocument(this.moduleUri));
     }
 
@@ -124,7 +124,7 @@ export class ModuleModifier {
         }
     }
 
-    async addToModule(group: string, className: string): Promise<boolean> {
+    public async addToModule(group: string, className: string): Promise<boolean> {
         const textDocument = await this.loadModule();
 
         const text = textDocument.getText();
