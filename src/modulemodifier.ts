@@ -59,16 +59,12 @@ function stepOverBrackets(text: string, atPosition: number): number {
 }
 
 export class ModuleModifier {
-    private textDocument: vscode.TextDocument | null = null;
+    private readonly textDocumentPromise = vscode.workspace.openTextDocument(this.moduleUri);
 
-    constructor(private moduleUri: string) {}
-
-    private async loadModule(): Promise<vscode.TextDocument> {
-        return (this.textDocument ??= await vscode.workspace.openTextDocument(this.moduleUri));
-    }
+    constructor(private readonly moduleUri: string) {}
 
     public async addImport(classNames: string[], typescriptPath: string): Promise<boolean> {
-        const textDocument = await this.loadModule();
+        const textDocument = await this.textDocumentPromise;
 
         classNames.sort();
 
@@ -125,7 +121,7 @@ export class ModuleModifier {
     }
 
     public async addToModule(group: string, className: string): Promise<boolean> {
-        const textDocument = await this.loadModule();
+        const textDocument = await this.textDocumentPromise;
 
         const text = textDocument.getText();
         const moduleLocation = text.indexOf('@NgModule(');
@@ -185,7 +181,7 @@ export class ModuleModifier {
     }
 
     public async save(): Promise<void> {
-        const textDocument = await this.loadModule();
+        const textDocument = await this.textDocumentPromise;
         await textDocument.save();
     }
 }
