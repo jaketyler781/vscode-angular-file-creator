@@ -13,6 +13,7 @@ import {
     trimClassNameParts,
     FileType,
 } from './naming';
+import {runWithErrorLogging} from './util';
 
 const InvalidCharacterRegex = /[^\w\d_]|^\d/i;
 
@@ -261,15 +262,6 @@ async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
     }
     await makeFolder(containingFolder);
     await createModule(name, containingFolder);
-}
-
-async function runWithErrorLogging(runCommand: (uri: vscode.Uri) => Promise<void>, uri: vscode.Uri): Promise<void> {
-    try {
-        await runCommand(uri);
-    } catch (err) {
-        vscode.window.showErrorMessage(err.toString());
-        console.error(err);
-    }
 }
 
 export function activate(context: vscode.ExtensionContext) {
