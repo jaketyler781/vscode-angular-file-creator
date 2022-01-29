@@ -71,3 +71,10 @@ export async function makeFolder(folder: string) {
         });
     });
 }
+
+export async function assertFolder(uri: vscode.Uri): Promise<void> {
+    const fileStat = await vscode.workspace.fs.stat(uri);
+    if (fileStat.type !== vscode.FileType.Directory) {
+        throw new Error('Must select a folder for creating new Angular files');
+    }
+}

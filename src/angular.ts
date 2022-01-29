@@ -2,7 +2,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-import {writeFile, findModules, makeFolder, doesFileExist} from './file';
+import {writeFile, findModules, makeFolder, doesFileExist, assertFolder} from './file';
 import {ModuleModifier} from './modulemodifier';
 import {
     getNameParts,
@@ -205,6 +205,7 @@ async function promptUserForClassName({
 }
 
 async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
+    await assertFolder(uri);
     const componentName = await promptUserForClassName({
         defaultName: 'NewComponent',
         prompt: 'Name of component class',
@@ -226,6 +227,7 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
 }
 
 async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
+    await assertFolder(uri);
     const directiveName = await promptUserForClassName({
         defaultName: 'NewDirective',
         prompt: 'Name of directive class',
@@ -246,6 +248,7 @@ async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
 }
 
 async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
+    await assertFolder(uri);
     const moduleName = await promptUserForClassName({
         defaultName: 'NewModule',
         prompt: 'Name of module class',
@@ -261,12 +264,6 @@ async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
 }
 
 async function runWithErrorLogging(runCommand: (uri: vscode.Uri) => Promise<void>, uri: vscode.Uri): Promise<void> {
-    const fileStat = await vscode.workspace.fs.stat(uri);
-    if (fileStat.type !== vscode.FileType.Directory) {
-        vscode.window.showErrorMessage('Must select a folder for creating new Angular files');
-        return;
-    }
-
     try {
         await runCommand(uri);
     } catch (err) {
