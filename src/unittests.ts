@@ -108,7 +108,7 @@ describe(module.id, () => {
 });`;
 }
 
-function generateLucidInjectorClassTest(className: string, filename: string) {
+function generateLucidInjectableClassTest(className: string, filename: string) {
     return `import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {setupInjector} from '@lucid/testing/testsetup';
 import {${className}} from './${path.basename(filename, '.ts')}';
@@ -123,7 +123,7 @@ describe(module.id, () => {
 `;
 }
 
-function generateAngularInjectorClassTest(className: string, filename: string) {
+function generateAngularInjectableClassTest(className: string, filename: string) {
     return `import {
     inAngularEnvironment,
     TestEnvironmentConfiguration,
@@ -224,9 +224,9 @@ async function getTestContent(uri: vscode.Uri): Promise<string> {
     } else if (className) {
         switch (classMetadata.injector) {
             case InjectorType.Angular:
-                return generateAngularInjectorClassTest(className, filename);
+                return generateAngularInjectableClassTest(className, filename);
             case InjectorType.Lucid:
-                return generateLucidInjectorClassTest(className, filename);
+                return generateLucidInjectableClassTest(className, filename);
             case InjectorType.None:
                 return generateLucidInjectorClasslessTest();
         }
