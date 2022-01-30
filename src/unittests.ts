@@ -105,6 +105,26 @@ function getClassImport(className: string, filename: string) {
     return `import {${className}} from './${path.basename(filename, '.ts')}';`;
 }
 
+function getAngularDescribe(itContent: string, module?: string) {
+    const ngModule = module
+        ? `ngModule: ${module},
+        `
+        : '';
+    return `describe(module.id, () => {
+    const getConfig = (): TestEnvironmentConfiguration => ({
+        ${ngModule}lucidProvides: mockProvides,
+        ngProvides: ngMockProvides,
+    });
+
+    it('should load injectable', async () => {
+        await inAngularEnvironment(getConfig(), async (testBedWrapper, lucidInjector) => {
+            ${itContent}
+            // TODO write test code
+        });
+    });
+});`;
+}
+
 function generateLucidInjectorClasslessTest() {
     return `${mockProvidesImport}
 import {setupInjector} from '@lucid/testing/testsetup';
@@ -139,19 +159,7 @@ ${mockProvidesImport}
 import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';
 ${getClassImport(className, filename)}
 
-describe(module.id, () => {
-    const getConfig = (): TestEnvironmentConfiguration => ({
-        lucidProvides: mockProvides,
-        ngProvides: ngMockProvides,
-    });
-
-    it('should load injectable', async () => {
-        await inAngularEnvironment(getConfig(), async (testBedWrapper, lucidInjector) => {
-            const ${toLowerCamelCase(className)} = testBedWrapper.inject(${className});
-            // TODO write test code
-        });
-    });
-});
+${getAngularDescribe(`const ${toLowerCamelCase(className)} = testBedWrapper.inject(${className});`)}
 `;
 }
 
@@ -189,22 +197,12 @@ class Test${className} {}
 })
 class TestModule {}
 
-describe(module.id, () => {
-    const getConfig = (): TestEnvironmentConfiguration => ({
-        ngModule: TestModule,
-        lucidProvides: mockProvides,
-        ngProvides: ngMockProvides,
-    });
-
-    it('should load view', async () => {
-        await inAngularEnvironment(getConfig(), async (testBedWrapper, lucidInjector) => {
-            const interactions = new AsyncMockInteractions();
+${getAngularDescribe(
+    `const interactions = new AsyncMockInteractions();
             const fixture = testBedWrapper.createComponent(Test${className});
-            fixture.detectChanges();
-            // TODO write test code
-        });
-    });
-});
+            fixture.detectChanges();`,
+    'TestModule',
+)}
 `;
 }
 
