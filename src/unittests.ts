@@ -94,12 +94,19 @@ async function findModuleForClass(filename: string, className: string): Promise<
     return null;
 }
 
+const inAngularEnvironmentImports = `import {
+    inAngularEnvironment,
+    TestEnvironmentConfiguration,
+} from '@lucid/angular/testing/angularenvironment/testangular';`;
+
+const mockProvidesImport = `import {mockProvides} from '@lucid/injector/mock/mockprovides';`;
+
 function getClassImport(className: string, filename: string) {
     return `import {${className}} from './${path.basename(filename, '.ts')}';`;
 }
 
 function generateLucidInjectorClasslessTest() {
-    return `import {mockProvides} from '@lucid/injector/mock/mockprovides';
+    return `${mockProvidesImport}
 import {setupInjector} from '@lucid/testing/testsetup';
 
 describe(module.id, () => {
@@ -112,7 +119,7 @@ describe(module.id, () => {
 }
 
 function generateLucidInjectableClassTest(className: string, filename: string) {
-    return `import {mockProvides} from '@lucid/injector/mock/mockprovides';
+    return `${mockProvidesImport}
 import {setupInjector} from '@lucid/testing/testsetup';
 ${getClassImport(className, filename)}
 
@@ -127,11 +134,8 @@ describe(module.id, () => {
 }
 
 function generateAngularInjectableClassTest(className: string, filename: string) {
-    return `import {
-    inAngularEnvironment,
-    TestEnvironmentConfiguration,
-} from '@lucid/angular/testing/angularenvironment/testangular';
-import {mockProvides} from '@lucid/injector/mock/mockprovides';
+    return `${inAngularEnvironmentImports}
+${mockProvidesImport}
 import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';
 ${getClassImport(className, filename)}
 
@@ -168,12 +172,9 @@ function generateAngularViewTest(
     angularFileType: AngularFileType.Component | AngularFileType.Directive,
 ) {
     return `import {Component, NgModule} from '@angular/core';
-import {
-    inAngularEnvironment,
-    TestEnvironmentConfiguration,
-} from '@lucid/angular/testing/angularenvironment/testangular';
+${inAngularEnvironmentImports}
 import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteractions';
-import {mockProvides} from '@lucid/injector/mock/mockprovides';
+${mockProvidesImport}
 import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';
 import {${moduleName.moduleName}} from '${moduleName.modulePath}';
 
