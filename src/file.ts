@@ -25,9 +25,9 @@ export async function writeFile(path: string, content: string): Promise<void> {
     });
 }
 
-export async function findModules(inDirectory: string): Promise<string[]> {
-    const files = await new Promise<string[]>((resolve, reject) => {
-        fs.readdir(inDirectory, (err, files) => {
+async function getFilesInFolder(directory: string): Promise<string[]> {
+    return new Promise<string[]>((resolve, reject) => {
+        fs.readdir(directory, (err, files) => {
             if (err) {
                 reject(err);
             } else {
@@ -35,6 +35,10 @@ export async function findModules(inDirectory: string): Promise<string[]> {
             }
         });
     });
+}
+
+export async function findModules(inDirectory: string): Promise<string[]> {
+    const files = await getFilesInFolder(inDirectory);
 
     const result = files
         .filter((file) => file.indexOf('.module.ts') !== -1)
