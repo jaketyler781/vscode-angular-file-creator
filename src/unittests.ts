@@ -4,15 +4,11 @@ import {writeFile, findModules, ensureDot, doesFileExist} from './file';
 import {getSelectorName, getPrefix, getNameParts, FileType, trimClassNameParts} from './naming';
 import {runWithErrorLogging} from './util';
 
-export function toLowerCamelCase(upperCamelCase: string): string {
+function toLowerCamelCase(upperCamelCase: string): string {
     return upperCamelCase[0].toLowerCase() + upperCamelCase.slice(1);
 }
 
-export function autoProvidesPath(filename: string, tsProjectDir: string): string {
-    return ensureDot(path.join(path.relative(path.dirname(filename), tsProjectDir), 'autoprovides.generated'));
-}
-
-export async function findTsProject(filename: string): Promise<string | null> {
+async function findTsProject(filename: string): Promise<string | null> {
     const dir = path.dirname(filename);
 
     if (
@@ -27,12 +23,12 @@ export async function findTsProject(filename: string): Promise<string | null> {
     }
 }
 
-export interface ClassMetadata {
+interface ClassMetadata {
     name: string | null;
     angularInjector: boolean;
 }
 
-export async function findPrimaryExport(inFile: string): Promise<ClassMetadata> {
+async function findPrimaryExport(inFile: string): Promise<ClassMetadata> {
     let expectedClassName = path.basename(inFile, '.ts');
 
     if (expectedClassName.endsWith('.component')) {
@@ -64,9 +60,9 @@ export async function findPrimaryExport(inFile: string): Promise<ClassMetadata> 
     };
 }
 
-export type ModuleInfo = {modulePath: string; moduleName: string};
+type ModuleInfo = {modulePath: string; moduleName: string};
 
-export async function findModuleForClass(filename: string, className: string): Promise<ModuleInfo | null> {
+async function findModuleForClass(filename: string, className: string): Promise<ModuleInfo | null> {
     const modulesToCheck = await findModules(path.dirname(filename));
 
     for (const modulePath of modulesToCheck) {
@@ -91,7 +87,7 @@ export async function findModuleForClass(filename: string, className: string): P
     return null;
 }
 
-export function generateClasslessTest() {
+function generateClasslessTest() {
     return `import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {setupInjector} from '@lucid/testing/testsetup';
 
@@ -105,7 +101,7 @@ describe(module.id, () => {
 });`;
 }
 
-export function generateClassTest(className: string, filename: string) {
+function generateClassTest(className: string, filename: string) {
     return `import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {setupInjector} from '@lucid/testing/testsetup';
 
@@ -127,7 +123,7 @@ describe(module.id, () => {
 });`;
 }
 
-export function generateInjectorClassTest(className: string, filename: string) {
+function generateInjectorClassTest(className: string, filename: string) {
     return `import {ReflectiveInjector} from '@angular/core';
 import {ng2AutoProvides} from '@lucid/angular/testing/injector';
 import {mockProvides} from '@lucid/injector/mock/mockprovides';
@@ -151,7 +147,7 @@ describe(module.id, () => {
 });`;
 }
 
-export function generateComponentTestWithTestModule(
+function generateComponentTestWithTestModule(
     className: string,
     filename: string,
     moduleName: ModuleInfo,
@@ -196,12 +192,7 @@ describe(
 );`;
 }
 
-export function generateComponentTest(
-    className: string,
-    filename: string,
-    moduleName: ModuleInfo,
-    asyncAwait: boolean,
-) {
+function generateComponentTest(className: string, filename: string, moduleName: ModuleInfo, asyncAwait: boolean) {
     return `import {TestEnvironment} from '@lucid/angular/testing/testenvironment';
 import {testComponent, testModule} from '@lucid/angular/testing/testmodule';
 import {mockProvides} from '@lucid/injector/mock/mockprovides';
@@ -227,7 +218,7 @@ describe(
 );`;
 }
 
-export function generateTest(className: string, asyncAwait: boolean): string {
+function generateTest(className: string, asyncAwait: boolean): string {
     if (asyncAwait) {
         return `it('should show calendar on click', testComponent({}, async (testEnv: TestEnvironment) => {
                 await asyncAwaitMockClock(async mockClock => {
@@ -246,7 +237,7 @@ export function generateTest(className: string, asyncAwait: boolean): string {
     }
 }
 
-export function generateMockClockImports(filename: string, asyncAswait: boolean): string {
+function generateMockClockImports(filename: string, asyncAswait: boolean): string {
     if (asyncAswait) {
         return `import {asyncAwaitMockClock} from '@lucid/pipelinedeps/test/asyncmockclock';
 import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteractions';`;
