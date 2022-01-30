@@ -24,17 +24,17 @@
                 {
                     "command": "extension.angularFileCreator.create-component",
                     "group": "1_modification",
-                    "when": "explorerViewletVisible"
+                    "when": "explorerViewletVisible && explorerResourceIsFolder"
                 },
                 {
                     "command": "extension.angularFileCreator.create-directive",
                     "group": "1_modification",
-                    "when": "explorerViewletVisible"
+                    "when": "explorerViewletVisible && explorerResourceIsFolder"
                 },
                 {
                     "command": "extension.angularFileCreator.create-module",
                     "group": "1_modification",
-                    "when": "explorerViewletVisible"
+                    "when": "explorerViewletVisible && explorerResourceIsFolder"
                 },
                 {
                     "command": "extension.angularFileCreator.create-unit-test",
