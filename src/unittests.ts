@@ -263,38 +263,37 @@ import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteraction
     }
 }
 
+async function generateAngularTest(className: string, filename: string): Promise<string> {
+    const moduleInfo = await findModuleForClass(filename, className);
+    if (!moduleInfo) {
+        return '// could not find module for component being tested';
+    }
+
+    const useHtmlOptions = ['Create with test html (Required for PopupAnchor)', 'Create with no test html'];
+    const createTestHtml = await vscode.window.showQuickPick(useHtmlOptions, {placeHolder: 'Create a test module?'});
+
+    const useAsyncAwaitOptions = [
+        'Use async/await mock clock',
+        'Use fakeAsyncWrapper, not compatible with async/await',
+    ];
+    const mockClock = await vscode.window.showQuickPick(useAsyncAwaitOptions, {
+        placeHolder: 'What kind of mock clock?',
+    });
+
+    const useAsyncAswait = mockClock === useAsyncAwaitOptions[0];
+
+    return createTestHtml === useHtmlOptions[0]
+        ? generateComponentTestWithTestModule(className, filename, moduleInfo, useAsyncAswait)
+        : generateComponentTest(className, filename, moduleInfo, useAsyncAswait);
+}
+
 async function getTestContent(uri: vscode.Uri): Promise<string> {
-    const classMetadata = await findPrimaryExport(uri.fsPath);
-    const className = classMetadata.name;
-    const tsProjectDir = await findTsProject(uri.fsPath);
     const filename = uri.fsPath;
+    const classMetadata = await findPrimaryExport(filename);
+    const className = classMetadata.name;
+    const tsProjectDir = await findTsProject(filename);
     if (filename.endsWith('.component.ts') && className && tsProjectDir) {
-        const moduleInfo = await findModuleForClass(uri.fsPath, className);
-
-        if (moduleInfo) {
-            const useHtmlOptions = ['Create with test html (Required for PopupAnchor)', 'Create with no test html'];
-            const createTestHtml = await vscode.window.showQuickPick(useHtmlOptions, {
-                placeHolder: 'Create a test module?',
-            });
-
-            const useAsyncAwaitOptions = [
-                'Use async/await mock clock',
-                'Use fakeAsyncWrapper, not compatible with async/await',
-            ];
-            const mockClock = await vscode.window.showQuickPick(useAsyncAwaitOptions, {
-                placeHolder: 'What kind of mock clock?',
-            });
-
-            const useAsyncAswait = mockClock === useAsyncAwaitOptions[0];
-
-            if (createTestHtml === useHtmlOptions[0]) {
-                return generateComponentTestWithTestModule(className, filename, moduleInfo, useAsyncAswait);
-            } else {
-                return generateComponentTest(className, filename, moduleInfo, useAsyncAswait);
-            }
-        } else {
-            return '// could not find module for component being tested';
-        }
+        return await generateAngularTest(className, filename);
     } else if (className) {
         if (classMetadata.angularInjector) {
             return generateInjectorClassTest(className, filename);
