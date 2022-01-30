@@ -325,7 +325,7 @@ async function runCreateUnitTestCommand(uri: vscode.Uri) {
 export function activate(context: vscode.ExtensionContext) {
     const createUnitTestListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-unit-test',
-        async (uri: vscode.Uri) => runWithErrorLogging(runCreateUnitTestCommand, uri),
+        async (uri: vscode.Uri) => runWithErrorLogging(() => runCreateUnitTestCommand(uri)),
     );
     context.subscriptions.push(createUnitTestListener);
 }

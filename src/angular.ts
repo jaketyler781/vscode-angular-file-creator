@@ -267,19 +267,19 @@ async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
 export function activate(context: vscode.ExtensionContext) {
     const createComponentListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-component',
-        (uri: vscode.Uri) => runWithErrorLogging(runCreateComponentCommand, uri),
+        (uri: vscode.Uri) => runWithErrorLogging(() => runCreateComponentCommand(uri)),
     );
     context.subscriptions.push(createComponentListener);
 
     const createDirectiveListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-directive',
-        (uri: vscode.Uri) => runWithErrorLogging(runCreateDirectiveCommand, uri),
+        (uri: vscode.Uri) => runWithErrorLogging(() => runCreateDirectiveCommand(uri)),
     );
     context.subscriptions.push(createDirectiveListener);
 
     const createModuleListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-module',
-        (uri: vscode.Uri) => runWithErrorLogging(runCreateModuleCommand, uri),
+        (uri: vscode.Uri) => runWithErrorLogging(() => runCreateModuleCommand(uri)),
     );
     context.subscriptions.push(createModuleListener);
 }
