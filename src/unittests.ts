@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import {writeFile, findModules, doesFileExist} from './file';
-import {getSelectorName, getPrefix, getNameParts, FileType, trimClassNameParts} from './naming';
+import {getSelectorName, getPrefix, getNameParts, AngularFileType, trimClassNameParts} from './naming';
 import {runWithErrorLogging} from './util';
 
 function toLowerCamelCase(upperCamelCase: string): string {
@@ -155,7 +155,7 @@ describe(module.id, () => {
 }
 
 function generateComponentTest(className: string, moduleName: ModuleInfo) {
-    const nameParts = trimClassNameParts(getNameParts(className), FileType.Component);
+    const nameParts = trimClassNameParts(getNameParts(className), AngularFileType.Component);
     const selectorName = getSelectorName(getPrefix(), nameParts);
 
     return `import {Component, NgModule} from '@angular/core';

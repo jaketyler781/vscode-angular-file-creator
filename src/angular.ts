@@ -11,7 +11,7 @@ import {
     camelCase,
     getModuleClassName,
     trimClassNameParts,
-    FileType,
+    AngularFileType,
 } from './naming';
 import {runWithErrorLogging} from './util';
 
@@ -37,7 +37,7 @@ function getComponentTemplate(name: string[]) {
     templateUrl: './${getFileName(name, '.component.html')}',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ${getClassName(name, FileType.Component)} {
+export class ${getClassName(name, AngularFileType.Component)} {
     // TODO implement component
 }
 `;
@@ -52,7 +52,7 @@ import {NgModule} from '@angular/core';
     exports: [],
     imports: [CommonModule],
 })
-export class ${getClassName(name, FileType.Module)} {};
+export class ${getClassName(name, AngularFileType.Module)} {};
 `;
 }
 
@@ -64,7 +64,7 @@ function getDirectiveTemplate(name: string[]) {
     moduleId: module.id,
     selector: '${directiveSelector}',
 })
-export class ${getClassName(name, FileType.Directive)} {
+export class ${getClassName(name, AngularFileType.Directive)} {
     // TODO implement directive
 }
 `;
@@ -78,13 +78,13 @@ function getFileName(nameParts: string[], ext: string): string {
     return getFolderName(nameParts) + ext;
 }
 
-function getClassName(nameParts: string[], fileType: FileType): string {
+function getClassName(nameParts: string[], fileType: AngularFileType): string {
     switch (fileType) {
-        case FileType.Component:
+        case AngularFileType.Component:
             return camelCase(nameParts, true) + 'Component';
-        case FileType.Directive:
+        case AngularFileType.Directive:
             return camelCase(nameParts, true) + 'Directive';
-        case FileType.Module:
+        case AngularFileType.Module:
             return getModuleClassName(getPrefix(), nameParts);
     }
 }
@@ -155,7 +155,7 @@ async function promptUserForModuleToAddClassTo({
     classAbsolutePath: string;
     name: string[];
     inFolder: string;
-    fileType: FileType;
+    fileType: AngularFileType;
 }): Promise<void> {
     const modules = await findModules(inFolder);
     const relativeModules = [
@@ -212,7 +212,7 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
         prompt: 'Name of component class',
         exampleName: 'TestComponent FooBarComponent',
     });
-    const name = trimClassNameParts(getNameParts(componentName), FileType.Component);
+    const name = trimClassNameParts(getNameParts(componentName), AngularFileType.Component);
     const componentFolder = path.join(uri.fsPath, getFolderName(name));
     if (await doesFileExist(componentFolder)) {
         throw new Error('Folder with name ' + componentFolder + ' already exists');
@@ -222,7 +222,7 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
     await promptUserForModuleToAddClassTo({
         name,
         inFolder: componentFolder,
-        fileType: FileType.Component,
+        fileType: AngularFileType.Component,
         classAbsolutePath: componentAbsolutePath,
     });
 }
@@ -243,7 +243,7 @@ async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
     await promptUserForModuleToAddClassTo({
         name,
         inFolder: uri.fsPath,
-        fileType: FileType.Directive,
+        fileType: AngularFileType.Directive,
         classAbsolutePath: directiveAbsolutePath,
     });
 }
@@ -255,7 +255,7 @@ async function runCreateModuleCommand(uri: vscode.Uri): Promise<void> {
         prompt: 'Name of module class',
         exampleName: 'TestModule FooBarModule',
     });
-    const name = trimClassNameParts(getNameParts(moduleName), FileType.Module);
+    const name = trimClassNameParts(getNameParts(moduleName), AngularFileType.Module);
     const containingFolder = path.join(uri.fsPath, getFolderName(name));
     if (await doesFileExist(containingFolder)) {
         throw new Error('Folder with name ' + containingFolder + ' already exists');

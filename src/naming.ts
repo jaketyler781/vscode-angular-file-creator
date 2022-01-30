@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-export enum FileType {
+export enum AngularFileType {
     Component = 'component',
     Directive = 'directive',
     Module = 'module',
@@ -24,7 +24,7 @@ export function getNameParts(name: string): string[] {
         .filter((a) => a.length > 0);
 }
 
-export function trimClassNameParts(nameParts: string[], fileType: FileType): string[] {
+export function trimClassNameParts(nameParts: string[], fileType: AngularFileType): string[] {
     if (nameParts[nameParts.length - 1] === fileType) {
         nameParts.pop();
     }
