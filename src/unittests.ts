@@ -159,20 +159,19 @@ function generateComponentTest(className: string, moduleName: ModuleInfo) {
     const selectorName = getSelectorName(getPrefix(), nameParts);
 
     return `import {Component, NgModule} from '@angular/core';
-import {TestEnvironment} from '@lucid/angular/testing/testenvironment';
-import {testComponent, testModule} from '@lucid/angular/testing/testmodule';
+import {
+    inAngularEnvironment,
+    TestEnvironmentConfiguration,
+} from '@lucid/angular/testing/angularenvironment/testangular';
+import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteractions';
 import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';
-import {asyncAwaitMockClock} from '@lucid/pipelinedeps/test/asyncmockclock';
-import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteractions';
-
 import {${moduleName.moduleName}} from '${moduleName.modulePath}';
 
 @Component({
     template: '<${selectorName}></${selectorName}>',
 })
-class Test${className} {
-}
+class Test${className} {}
 
 @NgModule({
     declarations: [Test${className}],
@@ -180,25 +179,23 @@ class Test${className} {
 })
 class TestModule {}
 
-describe(
-    module.id,
-    testModule(
-        {
-            module: TestModule,
-            lucidProvides: mockProvides,
-            ngProvides: ngMockProvides,
-        },
-        () => {
-            it('should show calendar on click', testComponent({}, async (testEnv: TestEnvironment) => {
-                await asyncAwaitMockClock(async mockClock => {
-                    const interactions = new AsyncMockInteractions(mockClock);
-                    const fixture = testEnv.createComponent(Test${className});
-                    fixture.detectChanges();
-                });
-            }));
-        }
-    )
-);`;
+describe(module.id, () => {
+    const getConfig = (): TestEnvironmentConfiguration => ({
+        ngModule: TestModule,
+        lucidProvides: mockProvides,
+        ngProvides: ngMockProvides,
+    });
+
+    it('should load view', async () => {
+        await inAngularEnvironment(getConfig(), async (testBedWrapper, lucidInjector) => {
+            const interactions = new AsyncMockInteractions();
+            const fixture = testBedWrapper.createComponent(Test${className});
+            fixture.detectChanges();
+            // TODO write test code
+        });
+    });
+});
+`;
 }
 
 async function generateAngularTest(
