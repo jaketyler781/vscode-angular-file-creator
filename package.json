@@ -39,7 +39,7 @@
                 {
                     "command": "extension.angularFileCreator.create-unit-test",
                     "group": "1_modification",
-                    "when": "explorerViewletVisible"
+                    "when": "explorerViewletVisible && resourceExtname == .ts && resourceFilename =~ /^((?!(spec|module|test|mock)).)*$/"
                 }
             ]
         },
