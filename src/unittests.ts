@@ -72,23 +72,21 @@ type ModuleInfo = {modulePath: string; moduleName: string};
 async function findModuleForClass(filename: string, className: string): Promise<ModuleInfo | null> {
     const modulesToCheck = await findModules(path.dirname(filename));
 
-    for (const modulePath of modulesToCheck) {
-        const doc = await vscode.workspace.openTextDocument(modulePath);
+    for (const potentialModulePath of modulesToCheck) {
+        const doc = await vscode.workspace.openTextDocument(potentialModulePath);
         const text = doc.getText();
-
-        if (text.indexOf(className) !== -1) {
-            const moduleNameFinder = /export\s+class\s+([\w_][\w\d_]+Module)/gim;
-            const match = moduleNameFinder.exec(text);
-
-            if (match) {
-                const relativeModulePath = path.relative(path.dirname(filename), modulePath.slice(0, -'.ts'.length));
-
-                return {
-                    modulePath: relativeModulePath[0] === '.' ? relativeModulePath : './' + relativeModulePath,
-                    moduleName: match[1],
-                };
-            }
+        if (text.indexOf(className) === -1) {
+            continue;
         }
+        const moduleNameFinder = /export\s+class\s+([\w_][\w\d_]+Module)/gim;
+        const match = moduleNameFinder.exec(text);
+        const moduleName = match?.[1];
+        if (!moduleName) {
+            continue;
+        }
+        const relativeModulePath = path.relative(path.dirname(filename), potentialModulePath.slice(0, -'.ts'.length));
+        const modulePath = relativeModulePath[0] === '.' ? relativeModulePath : './' + relativeModulePath;
+        return {modulePath, moduleName};
     }
 
     return null;
