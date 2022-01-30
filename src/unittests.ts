@@ -263,24 +263,11 @@ import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteraction
     }
 }
 
-async function runCreateUnitTestCommand(uri: vscode.Uri) {
-    if (!uri.fsPath || path.extname(uri.fsPath) !== '.ts') {
-        throw new Error('Must select a .ts file to create a unit test');
-    }
-
-    const componentPath = uri.fsPath.slice(0, -3) + '.spec.ts';
-
-    const testFileAlreadyExists = await doesFileExist(componentPath);
-    if (testFileAlreadyExists) {
-        throw new Error(`A test file with the name ${componentPath} already exists`);
-    }
-
+async function getTestContent(uri: vscode.Uri): Promise<string> {
     const classMetadata = await findPrimaryExport(uri.fsPath);
     const className = classMetadata.name;
     const tsProjectDir = await findTsProject(uri.fsPath);
     const filename = uri.fsPath;
-    let testContent = '';
-
     if (filename.endsWith('.component.ts') && className && tsProjectDir) {
         const moduleInfo = await findModuleForClass(uri.fsPath, className);
 
@@ -301,23 +288,36 @@ async function runCreateUnitTestCommand(uri: vscode.Uri) {
             const useAsyncAswait = mockClock === useAsyncAwaitOptions[0];
 
             if (createTestHtml === useHtmlOptions[0]) {
-                testContent = generateComponentTestWithTestModule(className, filename, moduleInfo, useAsyncAswait);
+                return generateComponentTestWithTestModule(className, filename, moduleInfo, useAsyncAswait);
             } else {
-                testContent = generateComponentTest(className, filename, moduleInfo, useAsyncAswait);
+                return generateComponentTest(className, filename, moduleInfo, useAsyncAswait);
             }
         } else {
-            testContent = '// could not find module for component being tested';
+            return '// could not find module for component being tested';
         }
     } else if (className) {
         if (classMetadata.angularInjector) {
-            testContent = generateInjectorClassTest(className, filename);
+            return generateInjectorClassTest(className, filename);
         } else {
-            testContent = generateClassTest(className, filename);
+            return generateClassTest(className, filename);
         }
     } else {
-        testContent = generateClasslessTest();
+        return generateClasslessTest();
+    }
+}
+
+async function runCreateUnitTestCommand(uri: vscode.Uri) {
+    if (!uri.fsPath || path.extname(uri.fsPath) !== '.ts') {
+        throw new Error('Must select a .ts file to create a unit test');
     }
 
+    const componentPath = uri.fsPath.slice(0, -3) + '.spec.ts';
+    const testFileAlreadyExists = await doesFileExist(componentPath);
+    if (testFileAlreadyExists) {
+        throw new Error(`A test file with the name ${componentPath} already exists`);
+    }
+
+    const testContent = await getTestContent(uri);
     await writeFile(componentPath, testContent);
     const textDoc = await vscode.workspace.openTextDocument(componentPath);
     await vscode.window.showTextDocument(textDoc);
