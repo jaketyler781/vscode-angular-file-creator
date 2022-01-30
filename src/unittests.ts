@@ -147,7 +147,7 @@ describe(module.id, () => {
 });`;
 }
 
-function generateComponentTestWithTestModule(className: string, moduleName: ModuleInfo) {
+function generateComponentTest(className: string, moduleName: ModuleInfo) {
     const nameParts = trimClassNameParts(getNameParts(className), FileType.Component);
     const selectorName = getSelectorName(getPrefix(), nameParts);
 
@@ -200,7 +200,7 @@ async function generateAngularTest(className: string, filename: string): Promise
         throw new Error('Could not find module for Angular unit being tested');
     }
 
-    return generateComponentTestWithTestModule(className, moduleInfo);
+    return generateComponentTest(className, moduleInfo);
 }
 
 async function getTestContent(uri: vscode.Uri): Promise<string> {
