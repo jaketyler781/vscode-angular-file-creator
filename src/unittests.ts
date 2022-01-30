@@ -111,23 +111,16 @@ describe(module.id, () => {
 function generateLucidInjectorClassTest(className: string, filename: string) {
     return `import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {setupInjector} from '@lucid/testing/testsetup';
-
 import {${className}} from './${path.basename(filename, '.ts')}';
-
 
 describe(module.id, () => {
     it('should work', () => {
-        const injector = setupInjector([
-            mockProvides,
-            // Providing the class here ensures that a mock version isn't injected instead
-            ${className},
-        ]);
-
+        const injector = setupInjector(mockProvides);
         const ${toLowerCamelCase(className)} = injector.get(${className});
-
         // TODO write test code
     });
-});`;
+});
+`;
 }
 
 function generateAngularInjectorClassTest(className: string, filename: string) {
