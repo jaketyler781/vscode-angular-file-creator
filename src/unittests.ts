@@ -94,7 +94,7 @@ async function findModuleForClass(filename: string, className: string): Promise<
     return null;
 }
 
-function generateClasslessTest() {
+function generateLucidInjectorClasslessTest() {
     return `import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {setupInjector} from '@lucid/testing/testsetup';
 
@@ -108,7 +108,7 @@ describe(module.id, () => {
 });`;
 }
 
-function generateClassTest(className: string, filename: string) {
+function generateLucidInjectorClassTest(className: string, filename: string) {
     return `import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {setupInjector} from '@lucid/testing/testsetup';
 
@@ -130,7 +130,7 @@ describe(module.id, () => {
 });`;
 }
 
-function generateInjectorClassTest(className: string, filename: string) {
+function generateAngularInjectorClassTest(className: string, filename: string) {
     return `import {ReflectiveInjector} from '@angular/core';
 import {ng2AutoProvides} from '@lucid/angular/testing/injector';
 import {mockProvides} from '@lucid/injector/mock/mockprovides';
@@ -220,14 +220,14 @@ async function getTestContent(uri: vscode.Uri): Promise<string> {
     } else if (className) {
         switch (classMetadata.injector) {
             case InjectorType.Angular:
-                return generateInjectorClassTest(className, filename);
+                return generateAngularInjectorClassTest(className, filename);
             case InjectorType.Lucid:
-                return generateClassTest(className, filename);
+                return generateLucidInjectorClassTest(className, filename);
             case InjectorType.None:
-                return generateClasslessTest();
+                return generateLucidInjectorClasslessTest();
         }
     } else {
-        return generateClasslessTest();
+        return generateLucidInjectorClasslessTest();
     }
 }
 
