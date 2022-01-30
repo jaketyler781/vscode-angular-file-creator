@@ -192,32 +192,6 @@ describe(
 );`;
 }
 
-function generateComponentTest(className: string, filename: string, moduleName: ModuleInfo, asyncAwait: boolean) {
-    return `import {TestEnvironment} from '@lucid/angular/testing/testenvironment';
-import {testComponent, testModule} from '@lucid/angular/testing/testmodule';
-import {mockProvides} from '@lucid/injector/mock/mockprovides';
-import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';
-${generateMockClockImports(filename, asyncAwait)}
-
-import {${className}} from './${path.basename(filename, '.ts')}';
-
-import {${moduleName.moduleName}} from '${moduleName.modulePath}';
-
-describe(
-    module.id,
-    testModule(
-        {
-            module: ${moduleName.moduleName},
-            lucidProvides: mockProvides,
-            ngProvides: ngMockProvides,
-        },
-        () => {
-            ${generateTest(className, asyncAwait)}
-        }
-    )
-);`;
-}
-
 function generateTest(className: string, asyncAwait: boolean): string {
     if (asyncAwait) {
         return `it('should show calendar on click', testComponent({}, async (testEnv: TestEnvironment) => {
@@ -260,9 +234,6 @@ async function generateAngularTest(className: string, filename: string): Promise
         return '// could not find module for component being tested';
     }
 
-    const useHtmlOptions = ['Create with test html (Required for PopupAnchor)', 'Create with no test html'];
-    const createTestHtml = await vscode.window.showQuickPick(useHtmlOptions, {placeHolder: 'Create a test module?'});
-
     const useAsyncAwaitOptions = [
         'Use async/await mock clock',
         'Use fakeAsyncWrapper, not compatible with async/await',
@@ -273,9 +244,7 @@ async function generateAngularTest(className: string, filename: string): Promise
 
     const useAsyncAswait = mockClock === useAsyncAwaitOptions[0];
 
-    return createTestHtml === useHtmlOptions[0]
-        ? generateComponentTestWithTestModule(className, filename, moduleInfo, useAsyncAswait)
-        : generateComponentTest(className, filename, moduleInfo, useAsyncAswait);
+    return generateComponentTestWithTestModule(className, filename, moduleInfo, useAsyncAswait);
 }
 
 async function getTestContent(uri: vscode.Uri): Promise<string> {
