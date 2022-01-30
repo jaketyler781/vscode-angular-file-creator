@@ -49,6 +49,8 @@ async function findPrimaryExport(inFile: string): Promise<ClassMetadata> {
 
     if (expectedClassName.endsWith('.component')) {
         expectedClassName = expectedClassName.slice(0, -'.component'.length) + 'component';
+    } else if (expectedClassName.endsWith('.directive')) {
+        expectedClassName = expectedClassName.slice(0, -'.directive'.length) + 'directive';
     } else if (expectedClassName.endsWith('.injectable')) {
         expectedClassName = expectedClassName.slice(0, -'.injectable'.length) + '(injectable)?';
     }
@@ -145,10 +147,22 @@ describe(module.id, () => {
 `;
 }
 
-function generateComponentTest(className: string, moduleName: ModuleInfo) {
-    const nameParts = trimClassNameParts(getNameParts(className), AngularFileType.Component);
-    const selectorName = getSelectorName(nameParts, AngularFileType.Component);
+function getTestComponentTemplate(
+    className: string,
+    angularFileType: AngularFileType.Component | AngularFileType.Directive,
+) {
+    const nameParts = trimClassNameParts(getNameParts(className), angularFileType);
+    const selectorName = getSelectorName(nameParts, angularFileType);
+    return angularFileType === AngularFileType.Component
+        ? `<${selectorName}></${selectorName}>`
+        : `<div ${selectorName}></div>`;
+}
 
+function generateAngularViewTest(
+    className: string,
+    moduleName: ModuleInfo,
+    angularFileType: AngularFileType.Component | AngularFileType.Directive,
+) {
     return `import {Component, NgModule} from '@angular/core';
 import {
     inAngularEnvironment,
@@ -160,7 +174,7 @@ import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';
 import {${moduleName.moduleName}} from '${moduleName.modulePath}';
 
 @Component({
-    template: '<${selectorName}></${selectorName}>',
+    template: '${getTestComponentTemplate(className, angularFileType)}',
 })
 class Test${className} {}
 
@@ -203,11 +217,7 @@ async function generateAngularTest(
         throw new Error('Could not find module for Angular unit being tested');
     }
 
-    if (angularFileType === AngularFileType.Component) {
-        return generateComponentTest(className, moduleInfo);
-    } else {
-        return generateComponentTest(className, moduleInfo); // TODO generate Angular Directive tests
-    }
+    return generateAngularViewTest(className, moduleInfo, angularFileType);
 }
 
 async function getTestContent(uri: vscode.Uri): Promise<string> {
