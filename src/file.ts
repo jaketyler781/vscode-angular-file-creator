@@ -40,21 +40,19 @@ async function getFilesInFolder(directory: string): Promise<string[]> {
 export async function findModules(inDirectory: string): Promise<string[]> {
     const files = await getFilesInFolder(inDirectory);
 
-    const result = files
-        .filter((file) => file.indexOf('.module.ts') !== -1)
-        .map((file) => path.join(inDirectory, file));
+    const moduleFiles = files.filter((file) => file.indexOf('.module.ts') !== -1);
+    const relativeModulePaths = moduleFiles.map((file) => path.join(inDirectory, file));
 
-    const next = path.join(inDirectory, '..');
-
-    const doNext = (vscode.workspace.workspaceFolders || []).some((folder) => {
-        return path.relative(folder.uri.fsPath, next).substr(0, 2) !== '..';
-    });
-
-    if (doNext) {
-        const moreModules = await findModules(next);
-        return result.concat(moreModules);
+    const parentFolder = path.join(inDirectory, '..');
+    const workspaceRootFolders = vscode.workspace.workspaceFolders ?? [];
+    const isParentFolderInWorkspace = workspaceRootFolders.some(
+        (workspaceRootFolder) => path.relative(workspaceRootFolder.uri.fsPath, parentFolder).substr(0, 2) !== '..',
+    );
+    if (isParentFolderInWorkspace) {
+        const moreModules = await findModules(parentFolder);
+        return relativeModulePaths.concat(moreModules);
     }
-    return result;
+    return relativeModulePaths;
 }
 
 export function ensureDot(relativePath: string): string {
