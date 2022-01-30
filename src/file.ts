@@ -26,31 +26,31 @@ export async function writeFile(path: string, content: string): Promise<void> {
 }
 
 export async function findModules(inDirectory: string): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-        fs.readdir(inDirectory, (err, items) => {
+    const files = await new Promise<string[]>((resolve, reject) => {
+        fs.readdir(inDirectory, (err, files) => {
             if (err) {
                 reject(err);
             } else {
-                const result = items
-                    .filter((item) => item.indexOf('.module.ts') !== -1)
-                    .map((item) => path.join(inDirectory, item));
-
-                const next = path.join(inDirectory, '..');
-
-                const doNext = (vscode.workspace.workspaceFolders || []).some((folder) => {
-                    return path.relative(folder.uri.fsPath, next).substr(0, 2) !== '..';
-                });
-
-                if (doNext) {
-                    findModules(next).then((moreModules) => {
-                        resolve(result.concat(moreModules));
-                    }, reject);
-                } else {
-                    resolve(result);
-                }
+                resolve(files);
             }
         });
     });
+
+    const result = files
+        .filter((file) => file.indexOf('.module.ts') !== -1)
+        .map((file) => path.join(inDirectory, file));
+
+    const next = path.join(inDirectory, '..');
+
+    const doNext = (vscode.workspace.workspaceFolders || []).some((folder) => {
+        return path.relative(folder.uri.fsPath, next).substr(0, 2) !== '..';
+    });
+
+    if (doNext) {
+        const moreModules = await findModules(next);
+        return result.concat(moreModules);
+    }
+    return result;
 }
 
 export function ensureDot(relativePath: string): string {
