@@ -96,14 +96,13 @@ function generateLucidInjectorClasslessTest() {
     return `import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {setupInjector} from '@lucid/testing/testsetup';
 
-
 describe(module.id, () => {
     it('should work', () => {
         const injector = setupInjector(mockProvides);
-
         // TODO write test code
     });
-});`;
+});
+`;
 }
 
 function generateLucidInjectableClassTest(className: string, filename: string) {
