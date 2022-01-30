@@ -24,7 +24,7 @@ async function findTsProject(filename: string): Promise<string | null> {
 }
 
 interface ClassMetadata {
-    name: string | null;
+    name: string | undefined;
     angularInjector: boolean;
 }
 
@@ -47,15 +47,8 @@ async function findPrimaryExport(inFile: string): Promise<ClassMetadata> {
 
     const angularInjector = docText.indexOf('@Injectable') !== -1;
 
-    if (match) {
-        return {
-            name: match[1],
-            angularInjector: angularInjector,
-        };
-    }
-
     return {
-        name: null,
+        name: match?.[1],
         angularInjector: angularInjector,
     };
 }
