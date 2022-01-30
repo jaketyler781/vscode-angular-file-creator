@@ -101,6 +101,7 @@ const inAngularEnvironmentImports = `import {
 
 const mockProvidesImport = `import {mockProvides} from '@lucid/injector/mock/mockprovides';`;
 const ngMockProvidesImport = `import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';`;
+const setupInjectorImport = `import {setupInjector} from '@lucid/testing/testsetup';`;
 
 function getClassImport(className: string, filename: string) {
     return `import {${className}} from './${path.basename(filename, '.ts')}';`;
@@ -128,7 +129,7 @@ function getAngularDescribe(itContent: string, module?: string) {
 
 function generateLucidInjectorClasslessTest() {
     return `${mockProvidesImport}
-import {setupInjector} from '@lucid/testing/testsetup';
+${setupInjectorImport}
 
 describe(module.id, () => {
     it('should work', () => {
@@ -141,7 +142,7 @@ describe(module.id, () => {
 
 function generateLucidInjectableClassTest(className: string, filename: string) {
     return `${mockProvidesImport}
-import {setupInjector} from '@lucid/testing/testsetup';
+${setupInjectorImport}
 ${getClassImport(className, filename)}
 
 describe(module.id, () => {
