@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import {writeFile, findModules, doesFileExist} from './file';
+import {writeFile, findModules, doesFileExist, getAngularFileType} from './file';
 import {getSelectorName, getPrefix, getNameParts, AngularFileType, trimClassNameParts} from './naming';
 import {runWithErrorLogging} from './util';
 
@@ -201,13 +201,25 @@ describe(
 );`;
 }
 
-async function generateAngularTest(className: string, filename: string): Promise<string> {
+async function generateAngularTest(
+    className: string,
+    filename: string,
+    angularFileType: AngularFileType,
+): Promise<string> {
+    if (angularFileType === AngularFileType.Module) {
+        throw new Error('Cannot create tests for Angular modules');
+    }
+
     const moduleInfo = await findModuleForClass(filename, className);
     if (!moduleInfo) {
         throw new Error('Could not find module for Angular unit being tested');
     }
 
-    return generateComponentTest(className, moduleInfo);
+    if (angularFileType === AngularFileType.Component) {
+        return generateComponentTest(className, moduleInfo);
+    } else {
+        return generateComponentTest(className, moduleInfo); // TODO generate Angular Directive tests
+    }
 }
 
 async function getTestContent(uri: vscode.Uri): Promise<string> {
@@ -215,8 +227,9 @@ async function getTestContent(uri: vscode.Uri): Promise<string> {
     const classMetadata = await findPrimaryExport(filename);
     const className = classMetadata.name;
     const tsProjectDir = await findTsProject(filename);
-    if (filename.endsWith('.component.ts') && className && tsProjectDir) {
-        return await generateAngularTest(className, filename);
+    const angularFileType = getAngularFileType(filename);
+    if (angularFileType && className && tsProjectDir) {
+        return await generateAngularTest(className, filename, angularFileType);
     } else if (className) {
         switch (classMetadata.injector) {
             case InjectorType.Angular:
