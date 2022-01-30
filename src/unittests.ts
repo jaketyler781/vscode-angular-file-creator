@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import {writeFile, findModules, ensureDot, doesFileExist} from './file';
+import {writeFile, findModules, doesFileExist} from './file';
 import {getSelectorName, getPrefix, getNameParts, FileType, trimClassNameParts} from './naming';
 import {runWithErrorLogging} from './util';
 
@@ -147,7 +147,7 @@ describe(module.id, () => {
 });`;
 }
 
-function generateComponentTestWithTestModule(className: string, filename: string, moduleName: ModuleInfo) {
+function generateComponentTestWithTestModule(className: string, moduleName: ModuleInfo) {
     const nameParts = trimClassNameParts(getNameParts(className), FileType.Component);
     const selectorName = getSelectorName(getPrefix(), nameParts);
 
@@ -200,7 +200,7 @@ async function generateAngularTest(className: string, filename: string): Promise
         return '// could not find module for component being tested';
     }
 
-    return generateComponentTestWithTestModule(className, filename, moduleInfo);
+    return generateComponentTestWithTestModule(className, moduleInfo);
 }
 
 async function getTestContent(uri: vscode.Uri): Promise<string> {
