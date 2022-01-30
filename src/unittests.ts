@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import {writeFile, findModules, ensureDot, doesFileExist} from './file';
 import {getSelectorName, getPrefix, getNameParts, FileType, trimClassNameParts} from './naming';
+import {runWithErrorLogging} from './util';
 
 export function toLowerCamelCase(upperCamelCase: string): string {
     return upperCamelCase[0].toLowerCase() + upperCamelCase.slice(1);
@@ -262,89 +263,70 @@ import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteraction
     }
 }
 
+async function runCreateUnitTestCommand(uri: vscode.Uri) {
+    if (!uri.fsPath || path.extname(uri.fsPath) !== '.ts') {
+        throw new Error('Must select a .ts file to create a unit test');
+    }
+
+    const componentPath = uri.fsPath.slice(0, -3) + '.spec.ts';
+
+    const testFileAlreadyExists = await doesFileExist(componentPath);
+    if (testFileAlreadyExists) {
+        throw new Error(`A test file with the name ${componentPath} already exists`);
+    }
+
+    const classMetadata = await findPrimaryExport(uri.fsPath);
+    const className = classMetadata.name;
+    const tsProjectDir = await findTsProject(uri.fsPath);
+    const filename = uri.fsPath;
+    let testContent = '';
+
+    if (filename.endsWith('.component.ts') && className && tsProjectDir) {
+        const moduleInfo = await findModuleForClass(uri.fsPath, className);
+
+        if (moduleInfo) {
+            const useHtmlOptions = ['Create with test html (Required for PopupAnchor)', 'Create with no test html'];
+            const createTestHtml = await vscode.window.showQuickPick(useHtmlOptions, {
+                placeHolder: 'Create a test module?',
+            });
+
+            const useAsyncAwaitOptions = [
+                'Use async/await mock clock',
+                'Use fakeAsyncWrapper, not compatible with async/await',
+            ];
+            const mockClock = await vscode.window.showQuickPick(useAsyncAwaitOptions, {
+                placeHolder: 'What kind of mock clock?',
+            });
+
+            const useAsyncAswait = mockClock === useAsyncAwaitOptions[0];
+
+            if (createTestHtml === useHtmlOptions[0]) {
+                testContent = generateComponentTestWithTestModule(className, filename, moduleInfo, useAsyncAswait);
+            } else {
+                testContent = generateComponentTest(className, filename, moduleInfo, useAsyncAswait);
+            }
+        } else {
+            testContent = '// could not find module for component being tested';
+        }
+    } else if (className) {
+        if (classMetadata.angularInjector) {
+            testContent = generateInjectorClassTest(className, filename);
+        } else {
+            testContent = generateClassTest(className, filename);
+        }
+    } else {
+        testContent = generateClasslessTest();
+    }
+
+    await writeFile(componentPath, testContent);
+    const textDoc = await vscode.workspace.openTextDocument(componentPath);
+    await vscode.window.showTextDocument(textDoc);
+}
+
 export function activate(context: vscode.ExtensionContext) {
     const createUnitTestListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-unit-test',
-        async (uri: vscode.Uri) => {
-            if (!uri.fsPath) {
-                vscode.window.showErrorMessage(
-                    'No file selected to make test of. Select a .ts file to create a unit test',
-                );
-                return;
-            }
-
-            if (path.extname(uri.fsPath) !== '.ts') {
-                vscode.window.showErrorMessage('You can only add unit tests to .ts files');
-                return;
-            }
-
-            try {
-                const componentPath = uri.fsPath.slice(0, -3) + '.spec.ts';
-
-                const testFileAlreadyExists = await doesFileExist(componentPath);
-                if (testFileAlreadyExists) {
-                    vscode.window.showErrorMessage(`A test file with the name ${componentPath} already exists`);
-                    return;
-                }
-
-                const classMetadata = await findPrimaryExport(uri.fsPath);
-                const className = classMetadata.name;
-                const tsProjectDir = await findTsProject(uri.fsPath);
-                const filename = uri.fsPath;
-                let testContent = '';
-
-                if (filename.endsWith('.component.ts') && className && tsProjectDir) {
-                    const moduleInfo = await findModuleForClass(uri.fsPath, className);
-
-                    if (moduleInfo) {
-                        const useHtmlOptions = [
-                            'Create with test html (Required for PopupAnchor)',
-                            'Create with no test html',
-                        ];
-                        const createTestHtml = await vscode.window.showQuickPick(useHtmlOptions, {
-                            placeHolder: 'Create a test module?',
-                        });
-
-                        const useAsyncAwaitOptions = [
-                            'Use async/await mock clock',
-                            'Use fakeAsyncWrapper, not compatible with async/await',
-                        ];
-                        const mockClock = await vscode.window.showQuickPick(useAsyncAwaitOptions, {
-                            placeHolder: 'What kind of mock clock?',
-                        });
-
-                        const useAsyncAswait = mockClock === useAsyncAwaitOptions[0];
-
-                        if (createTestHtml === useHtmlOptions[0]) {
-                            testContent = generateComponentTestWithTestModule(
-                                className,
-                                filename,
-                                moduleInfo,
-                                useAsyncAswait,
-                            );
-                        } else {
-                            testContent = generateComponentTest(className, filename, moduleInfo, useAsyncAswait);
-                        }
-                    } else {
-                        testContent = '// could not find module for component being tested';
-                    }
-                } else if (className) {
-                    if (classMetadata.angularInjector) {
-                        testContent = generateInjectorClassTest(className, filename);
-                    } else {
-                        testContent = generateClassTest(className, filename);
-                    }
-                } else {
-                    testContent = generateClasslessTest();
-                }
-
-                await writeFile(componentPath, testContent);
-                const textDoc = await vscode.workspace.openTextDocument(componentPath);
-                await vscode.window.showTextDocument(textDoc);
-            } catch (err) {
-                vscode.window.showErrorMessage(err.toString());
-            }
-        },
+        async (uri: vscode.Uri) => runWithErrorLogging(runCreateUnitTestCommand, uri),
     );
     context.subscriptions.push(createUnitTestListener);
 }
