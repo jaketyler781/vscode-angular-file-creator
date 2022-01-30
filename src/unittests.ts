@@ -23,9 +23,15 @@ async function findTsProject(filename: string): Promise<string | null> {
     }
 }
 
+enum InjectorType {
+    Angular = 'Angular',
+    Lucid = 'Lucid',
+    None = 'None',
+}
+
 interface ClassMetadata {
     name: string | undefined;
-    angularInjector: boolean;
+    injector: InjectorType;
 }
 
 async function findPrimaryExport(inFile: string): Promise<ClassMetadata> {
@@ -49,7 +55,7 @@ async function findPrimaryExport(inFile: string): Promise<ClassMetadata> {
 
     return {
         name: match?.[1],
-        angularInjector: angularInjector,
+        injector: angularInjector ? InjectorType.Angular : InjectorType.Lucid,
     };
 }
 
@@ -204,7 +210,7 @@ async function getTestContent(uri: vscode.Uri): Promise<string> {
     if (filename.endsWith('.component.ts') && className && tsProjectDir) {
         return await generateAngularTest(className, filename);
     } else if (className) {
-        if (classMetadata.angularInjector) {
+        if (classMetadata.injector == InjectorType.Angular) {
             return generateInjectorClassTest(className, filename);
         } else {
             return generateClassTest(className, filename);
