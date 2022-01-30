@@ -71,7 +71,7 @@ export async function findModuleForClass(filename: string, className: string): P
 
     for (const modulePath of modulesToCheck) {
         const doc = await vscode.workspace.openTextDocument(modulePath);
-        const text = await doc.getText();
+        const text = doc.getText();
 
         if (text.indexOf(className) !== -1) {
             const moduleNameFinder = /export\s+class\s+([\w_][\w\d_]+Module)/gim;
