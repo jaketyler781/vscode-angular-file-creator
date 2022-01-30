@@ -124,27 +124,28 @@ describe(module.id, () => {
 }
 
 function generateAngularInjectorClassTest(className: string, filename: string) {
-    return `import {ReflectiveInjector} from '@angular/core';
-import {ng2AutoProvides} from '@lucid/angular/testing/injector';
+    return `import {
+    inAngularEnvironment,
+    TestEnvironmentConfiguration,
+} from '@lucid/angular/testing/angularenvironment/testangular';
 import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';
-
 import {${className}} from './${path.basename(filename, '.ts')}';
 
-
 describe(module.id, () => {
-    it('should work', () => {
-        const injector = ReflectiveInjector.resolveAndCreate([
-            ng2AutoProvides(mockProvides, ngMockProvides),
-            // Providing the class here ensures that a mock version isn't injected instead
-            ${className},
-        ]);
-
-        const ${toLowerCamelCase(className)} = injector.get(${className});
-
-        // TODO write test code
+    const getConfig = (): TestEnvironmentConfiguration => ({
+        lucidProvides: mockProvides,
+        ngProvides: ngMockProvides,
     });
-});`;
+
+    it('should load injectable', async () => {
+        await inAngularEnvironment(getConfig(), async (testBedWrapper, lucidInjector) => {
+            const ${toLowerCamelCase(className)} = testBedWrapper.inject(${className});
+            // TODO write test code
+        });
+    });
+});
+`;
 }
 
 function generateComponentTest(className: string, moduleName: ModuleInfo) {
