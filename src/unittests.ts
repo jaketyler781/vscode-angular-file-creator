@@ -156,7 +156,8 @@ import {TestEnvironment} from '@lucid/angular/testing/testenvironment';
 import {testComponent, testModule} from '@lucid/angular/testing/testmodule';
 import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';
-${generateMockClockImports()}
+import {asyncAwaitMockClock} from '@lucid/pipelinedeps/test/asyncmockclock';
+import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteractions';
 
 import {${moduleName.moduleName}} from '${moduleName.modulePath}';
 
@@ -181,25 +182,16 @@ describe(
             ngProvides: ngMockProvides,
         },
         () => {
-            ${generateTest('Test' + className)}
+            it('should show calendar on click', testComponent({}, async (testEnv: TestEnvironment) => {
+                await asyncAwaitMockClock(async mockClock => {
+                    const interactions = new AsyncMockInteractions(mockClock);
+                    const fixture = testEnv.createComponent(Test${className});
+                    fixture.detectChanges();
+                });
+            }));
         }
     )
 );`;
-}
-
-function generateTest(className: string): string {
-    return `it('should show calendar on click', testComponent({}, async (testEnv: TestEnvironment) => {
-                await asyncAwaitMockClock(async mockClock => {
-                    const interactions = new AsyncMockInteractions(mockClock);
-                    const fixture = testEnv.createComponent(${className});
-                    fixture.detectChanges();
-                });
-            }));`;
-}
-
-function generateMockClockImports(): string {
-    return `import {asyncAwaitMockClock} from '@lucid/pipelinedeps/test/asyncmockclock';
-import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteractions';`;
 }
 
 async function generateAngularTest(className: string, filename: string): Promise<string> {
