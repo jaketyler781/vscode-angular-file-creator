@@ -127,16 +127,21 @@ function getAngularDescribe(itContent: string, module?: string) {
 });`;
 }
 
+function getLucidInjectorDescribe(itContent = '') {
+    return `describe(module.id, () => {
+    it('should work', () => {
+        const injector = setupInjector(mockProvides);
+        ${itContent}
+        // TODO write test code
+    });
+});`;
+}
+
 function generateLucidInjectorClasslessTest() {
     return `${mockProvidesImport}
 ${setupInjectorImport}
 
-describe(module.id, () => {
-    it('should work', () => {
-        const injector = setupInjector(mockProvides);
-        // TODO write test code
-    });
-});
+${getLucidInjectorDescribe()}
 `;
 }
 
@@ -145,13 +150,7 @@ function generateLucidInjectableClassTest(className: string, filename: string) {
 ${setupInjectorImport}
 ${getClassImport(className, filename)}
 
-describe(module.id, () => {
-    it('should work', () => {
-        const injector = setupInjector(mockProvides);
-        const ${toLowerCamelCase(className)} = injector.get(${className});
-        // TODO write test code
-    });
-});
+${getLucidInjectorDescribe(`const ${toLowerCamelCase(className)} = injector.get(${className});`)}
 `;
 }
 
