@@ -34,6 +34,16 @@ interface ClassMetadata {
     injector: InjectorType;
 }
 
+function getInjectorType(docText: string): InjectorType {
+    if (docText.indexOf('@Injectable') !== -1) {
+        return InjectorType.Angular;
+    } else if (docText.indexOf('@LucidInjectable') !== -1) {
+        return InjectorType.Lucid;
+    } else {
+        return InjectorType.None;
+    }
+}
+
 async function findPrimaryExport(inFile: string): Promise<ClassMetadata> {
     let expectedClassName = path.basename(inFile, '.ts');
 
@@ -51,11 +61,9 @@ async function findPrimaryExport(inFile: string): Promise<ClassMetadata> {
 
     const match = regex.exec(docText);
 
-    const angularInjector = docText.indexOf('@Injectable') !== -1;
-
     return {
         name: match?.[1],
-        injector: angularInjector ? InjectorType.Angular : InjectorType.Lucid,
+        injector: getInjectorType(docText),
     };
 }
 
@@ -210,10 +218,13 @@ async function getTestContent(uri: vscode.Uri): Promise<string> {
     if (filename.endsWith('.component.ts') && className && tsProjectDir) {
         return await generateAngularTest(className, filename);
     } else if (className) {
-        if (classMetadata.injector == InjectorType.Angular) {
-            return generateInjectorClassTest(className, filename);
-        } else {
-            return generateClassTest(className, filename);
+        switch (classMetadata.injector) {
+            case InjectorType.Angular:
+                return generateInjectorClassTest(className, filename);
+            case InjectorType.Lucid:
+                return generateClassTest(className, filename);
+            case InjectorType.None:
+                return generateClasslessTest();
         }
     } else {
         return generateClasslessTest();
