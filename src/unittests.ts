@@ -147,12 +147,7 @@ describe(module.id, () => {
 });`;
 }
 
-function generateComponentTestWithTestModule(
-    className: string,
-    filename: string,
-    moduleName: ModuleInfo,
-    asyncAwait: boolean,
-) {
+function generateComponentTestWithTestModule(className: string, filename: string, moduleName: ModuleInfo) {
     const nameParts = trimClassNameParts(getNameParts(className), FileType.Component);
     const selectorName = getSelectorName(getPrefix(), nameParts);
 
@@ -161,7 +156,7 @@ import {TestEnvironment} from '@lucid/angular/testing/testenvironment';
 import {testComponent, testModule} from '@lucid/angular/testing/testmodule';
 import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';
-${generateMockClockImports(filename, asyncAwait)}
+${generateMockClockImports()}
 
 import {${moduleName.moduleName}} from '${moduleName.modulePath}';
 
@@ -186,46 +181,25 @@ describe(
             ngProvides: ngMockProvides,
         },
         () => {
-            ${generateTest('Test' + className, asyncAwait)}
+            ${generateTest('Test' + className)}
         }
     )
 );`;
 }
 
-function generateTest(className: string, asyncAwait: boolean): string {
-    if (asyncAwait) {
-        return `it('should show calendar on click', testComponent({}, async (testEnv: TestEnvironment) => {
+function generateTest(className: string): string {
+    return `it('should show calendar on click', testComponent({}, async (testEnv: TestEnvironment) => {
                 await asyncAwaitMockClock(async mockClock => {
                     const interactions = new AsyncMockInteractions(mockClock);
                     const fixture = testEnv.createComponent(${className});
                     fixture.detectChanges();
                 });
             }));`;
-    } else {
-        return `it('should show calendar on click', testComponent({}, (testEnv: TestEnvironment) => {
-                fakeAsyncWrapper((stabilize, mockClock) => {
-                    const fixture = testEnv.createComponent(${className});
-                    fixture.detectChanges();
-                })();
-            }));`;
-    }
 }
 
-function generateMockClockImports(filename: string, asyncAswait: boolean): string {
-    if (asyncAswait) {
-        return `import {asyncAwaitMockClock} from '@lucid/pipelinedeps/test/asyncmockclock';
+function generateMockClockImports(): string {
+    return `import {asyncAwaitMockClock} from '@lucid/pipelinedeps/test/asyncmockclock';
 import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteractions';`;
-    } else {
-        const ng2commonLocation = filename.indexOf('angular/common');
-        if (ng2commonLocation === -1) {
-            return `import {fakeAsyncWrapper} from '@lucid/angular/testing/util';`;
-        } else {
-            const relativePath = ensureDot(
-                path.relative(path.dirname(filename), filename.substr(0, ng2commonLocation) + 'angular/testing/util'),
-            );
-            return `import {fakeAsyncWrapper} from '${relativePath}';`;
-        }
-    }
 }
 
 async function generateAngularTest(className: string, filename: string): Promise<string> {
@@ -234,17 +208,7 @@ async function generateAngularTest(className: string, filename: string): Promise
         return '// could not find module for component being tested';
     }
 
-    const useAsyncAwaitOptions = [
-        'Use async/await mock clock',
-        'Use fakeAsyncWrapper, not compatible with async/await',
-    ];
-    const mockClock = await vscode.window.showQuickPick(useAsyncAwaitOptions, {
-        placeHolder: 'What kind of mock clock?',
-    });
-
-    const useAsyncAswait = mockClock === useAsyncAwaitOptions[0];
-
-    return generateComponentTestWithTestModule(className, filename, moduleInfo, useAsyncAswait);
+    return generateComponentTestWithTestModule(className, filename, moduleInfo);
 }
 
 async function getTestContent(uri: vscode.Uri): Promise<string> {
