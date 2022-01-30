@@ -100,6 +100,7 @@ const inAngularEnvironmentImports = `import {
 } from '@lucid/angular/testing/angularenvironment/testangular';`;
 
 const mockProvidesImport = `import {mockProvides} from '@lucid/injector/mock/mockprovides';`;
+const ngMockProvidesImport = `import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';`;
 
 function getClassImport(className: string, filename: string) {
     return `import {${className}} from './${path.basename(filename, '.ts')}';`;
@@ -156,7 +157,7 @@ describe(module.id, () => {
 function generateAngularInjectableClassTest(className: string, filename: string) {
     return `${inAngularEnvironmentImports}
 ${mockProvidesImport}
-import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';
+${ngMockProvidesImport}
 ${getClassImport(className, filename)}
 
 ${getAngularDescribe(`const ${toLowerCamelCase(className)} = testBedWrapper.inject(${className});`)}
@@ -183,7 +184,7 @@ function generateAngularViewTest(
 ${inAngularEnvironmentImports}
 import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteractions';
 ${mockProvidesImport}
-import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';
+${ngMockProvidesImport}
 import {${moduleName.moduleName}} from '${moduleName.modulePath}';
 
 @Component({
