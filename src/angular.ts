@@ -33,7 +33,7 @@ function getComponentTemplate(name: string[]) {
 
 @Component({
     moduleId: module.id,
-    selector: '${getSelectorName(getPrefix(), name)}',
+    selector: '${getSelectorName(name)}',
     templateUrl: './${getFileName(name, '.component.html')}',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -35,7 +35,8 @@ export function trimClassNameParts(nameParts: string[], fileType: AngularFileTyp
     return nameParts;
 }
 
-export function getSelectorName(prefix: string[], nameParts: string[]): string {
+export function getSelectorName(nameParts: string[]): string {
+    const prefix = getPrefix();
     if (prefix.length) {
         return `${prefix.join('-')}-${nameParts.join('-')}`;
     } else {
