@@ -197,7 +197,7 @@ describe(
 async function generateAngularTest(className: string, filename: string): Promise<string> {
     const moduleInfo = await findModuleForClass(filename, className);
     if (!moduleInfo) {
-        return '// could not find module for component being tested';
+        throw new Error('Could not find module for Angular unit being tested');
     }
 
     return generateComponentTestWithTestModule(className, moduleInfo);
