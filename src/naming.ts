@@ -35,12 +35,14 @@ export function trimClassNameParts(nameParts: string[], fileType: AngularFileTyp
     return nameParts;
 }
 
-export function getSelectorName(nameParts: string[]): string {
+export function getSelectorName(nameParts: string[], angularFileType: AngularFileType): string {
     const prefix = getPrefix();
-    if (prefix.length) {
-        return `${prefix.join('-')}-${nameParts.join('-')}`;
+    if (angularFileType == AngularFileType.Component) {
+        return prefix.length > 0 ? `${prefix.join('-')}-${nameParts.join('-')}` : nameParts.join('-');
+    } else if (angularFileType === AngularFileType.Directive) {
+        return camelCase(getPrefix().concat(nameParts), false);
     } else {
-        return nameParts.join('-');
+        return '';
     }
 }
 

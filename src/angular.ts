@@ -33,7 +33,7 @@ function getComponentTemplate(name: string[]) {
 
 @Component({
     moduleId: module.id,
-    selector: '${getSelectorName(name)}',
+    selector: '${getSelectorName(name, AngularFileType.Component)}',
     templateUrl: './${getFileName(name, '.component.html')}',
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -57,7 +57,7 @@ export class ${getClassName(name, AngularFileType.Module)} {};
 }
 
 function getDirectiveTemplate(name: string[]) {
-    const directiveSelector = camelCase(getPrefix().concat(name), false);
+    const directiveSelector = getSelectorName(name, AngularFileType.Directive);
     return `import {Directive} from '@angular/core';
 
 @Directive({

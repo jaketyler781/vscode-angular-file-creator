@@ -147,7 +147,7 @@ describe(module.id, () => {
 
 function generateComponentTest(className: string, moduleName: ModuleInfo) {
     const nameParts = trimClassNameParts(getNameParts(className), AngularFileType.Component);
-    const selectorName = getSelectorName(nameParts);
+    const selectorName = getSelectorName(nameParts, AngularFileType.Component);
 
     return `import {Component, NgModule} from '@angular/core';
 import {
