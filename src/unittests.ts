@@ -94,6 +94,10 @@ async function findModuleForClass(filename: string, className: string): Promise<
     return null;
 }
 
+function getClassImport(className: string, filename: string) {
+    return `import {${className}} from './${path.basename(filename, '.ts')}';`;
+}
+
 function generateLucidInjectorClasslessTest() {
     return `import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {setupInjector} from '@lucid/testing/testsetup';
@@ -110,7 +114,7 @@ describe(module.id, () => {
 function generateLucidInjectableClassTest(className: string, filename: string) {
     return `import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {setupInjector} from '@lucid/testing/testsetup';
-import {${className}} from './${path.basename(filename, '.ts')}';
+${getClassImport(className, filename)}
 
 describe(module.id, () => {
     it('should work', () => {
@@ -129,7 +133,7 @@ function generateAngularInjectableClassTest(className: string, filename: string)
 } from '@lucid/angular/testing/angularenvironment/testangular';
 import {mockProvides} from '@lucid/injector/mock/mockprovides';
 import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';
-import {${className}} from './${path.basename(filename, '.ts')}';
+${getClassImport(className, filename)}
 
 describe(module.id, () => {
     const getConfig = (): TestEnvironmentConfiguration => ({
