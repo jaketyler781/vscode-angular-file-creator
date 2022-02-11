@@ -56,13 +56,9 @@ async function findPrimaryExport(inFile: string): Promise<ClassMetadata> {
     }
 
     const doc = await vscode.workspace.openTextDocument(inFile);
-
     const regex = new RegExp(`export class (${expectedClassName})`, 'gmi');
-
     const docText = doc.getText();
-
     const match = regex.exec(docText);
-
     return {
         name: match?.[1],
         injector: getInjectorType(docText),
