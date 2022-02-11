@@ -4,7 +4,10 @@
     "description": "Creates base files for Angular components, modules, directives, and tests",
     "version": "1.0.0",
     "publisher": "jake.tyler781",
-    "repository": "https://github.com/jaketyler781/angular-file-creator",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jaketyler781/angular-file-creator"
+    },
     "engines": {
         "vscode": "^1.32.0"
     },
