@@ -6,6 +6,11 @@ export enum AngularFileType {
     Module = 'module',
 }
 
+/**
+ * @param nameParts a list of strings to combine into a single CamelCase word
+ * @param capitalizeFirst whether to capitalize the first letter
+ * @returns a single CamelCase string composed of all the words from the list
+ */
 export function camelCase(nameParts: string[], capitalizeFirst: boolean) {
     return nameParts
         .map(
@@ -15,6 +20,11 @@ export function camelCase(nameParts: string[], capitalizeFirst: boolean) {
         .join('');
 }
 
+/**
+ *
+ * @param name camelCase text
+ * @returns an list of each word in the camelCase text, converted to lowercase
+ */
 export function getNameParts(name: string): string[] {
     return name
         .trim()
