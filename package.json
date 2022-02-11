@@ -2,7 +2,7 @@
     "name": "angular-file-creator",
     "displayName": "angular-file-creator",
     "description": "Creates base files for Angular components, modules, directives, and tests",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "publisher": "jake.tyler781",
     "repository": "https://github.com/jaketyler781/angular-file-creator",
     "engines": {
@@ -63,7 +63,7 @@
         ],
         "configuration": {
             "type": "object",
-            "title": "VsCode Angular File Creator Configuration",
+            "title": "Angular File Creator Configuration",
             "properties": {
                 "extension.angularFileCreator.prefix": {
                     "type": "string",
