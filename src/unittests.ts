@@ -180,6 +180,7 @@ function generateAngularViewTest(
     moduleName: ModuleInfo,
     angularFileType: AngularFileType.Component | AngularFileType.Directive,
 ) {
+    const testClassName = `Test${className}`;
     return `import {Component, NgModule} from '@angular/core';
 ${inAngularEnvironmentImports}
 import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteractions';
@@ -190,17 +191,17 @@ import {${moduleName.moduleName}} from '${moduleName.modulePath}';
 @Component({
     template: '${getTestComponentTemplate(className, angularFileType)}',
 })
-class Test${className} {}
+class ${testClassName} {}
 
 @NgModule({
-    declarations: [Test${className}],
+    declarations: [${testClassName}],
     imports: [${moduleName.moduleName}],
 })
 class TestModule {}
 
 ${getAngularDescribe(
     `const interactions = new AsyncMockInteractions();
-            const fixture = testBedWrapper.createComponent(Test${className});
+            const fixture = testBedWrapper.createComponent(${testClassName});
             fixture.detectChanges();`,
     'TestModule',
 )}
