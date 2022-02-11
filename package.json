@@ -41,6 +41,24 @@
                     "group": "1_modification",
                     "when": "explorerViewletVisible && resourceExtname == .ts && resourceFilename =~ /^((?!(spec|module|test|mock)).)*$/"
                 }
+            ],
+            "commandPalette": [
+                {
+                    "command": "extension.angularFileCreator.create-unit-test",
+                    "when": "explorerViewletVisible && resourceExtname == .ts && resourceFilename =~ /^((?!(spec|module|test|mock)).)*$/"
+                },
+                {
+                    "command": "extension.angularFileCreator.create-component",
+                    "when": "false"
+                },
+                {
+                    "command": "extension.angularFileCreator.create-directive",
+                    "when": "false"
+                },
+                {
+                    "command": "extension.angularFileCreator.create-module",
+                    "when": "false"
+                }
             ]
         },
         "commands": [
