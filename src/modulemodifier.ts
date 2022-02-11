@@ -1,24 +1,7 @@
 import * as vscode from 'vscode';
-
 import * as path from 'path';
 
 const importRegex = /import\s+\{([^}]+)\}\s+from\s+['"]([^'"]+)['"]/gm;
-
-function getLeadingWhitespace(text: string, startingAt: number): string {
-    const lineStart = startOfLine(text, startingAt);
-
-    let lineEnd = lineStart;
-
-    while ((text[lineEnd] === ' ' || text[lineEnd] === '\t') && lineEnd < text.length) {
-        ++lineEnd;
-    }
-
-    return text.substring(lineStart, lineEnd);
-}
-
-function startOfLine(text: string, startingAt: number): number {
-    return text.lastIndexOf('\n', startingAt) + 1;
-}
 
 function nextLine(text: string, startingAt: number): number {
     const result = text.indexOf('\n', startingAt);
@@ -28,34 +11,6 @@ function nextLine(text: string, startingAt: number): number {
     } else {
         return result + 1;
     }
-}
-
-function isOpenBrackets(char: string): boolean {
-    return char === '{' || char === '(' || char === '[';
-}
-
-function isClosingBracket(char: string): boolean {
-    return char === '}' || char === ')' || char === ']';
-}
-
-function stepOverBrackets(text: string, atPosition: number): number {
-    if (isOpenBrackets(text[atPosition])) {
-        const stack = [text[atPosition]];
-        ++atPosition;
-
-        while (stack.length > 0 && atPosition < text.length) {
-            const char = text[atPosition];
-            if (isOpenBrackets(char)) {
-                stack.push(char);
-            } else if (isClosingBracket(char)) {
-                stack.pop();
-            }
-
-            ++atPosition;
-        }
-    }
-
-    return atPosition;
 }
 
 export class ModuleModifier {
