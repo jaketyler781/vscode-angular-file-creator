@@ -1,18 +1,26 @@
 {
     "name": "angular-file-creator",
-    "displayName": "angular-file-creator",
+    "displayName": "Angular File Creator",
     "description": "Creates base files for Angular components, modules, directives, and tests",
     "version": "1.0.0",
-    "publisher": "jake.tyler781",
+    "publisher": "jaketyler781",
     "repository": {
         "type": "git",
         "url": "https://github.com/jaketyler781/angular-file-creator"
     },
     "engines": {
-        "vscode": "^1.32.0"
+        "vscode": "^1.63.1"
     },
     "categories": [
-        "Other"
+        "Other",
+        "Testing"
+    ],
+    "keywords": [
+        "Angular",
+        "TypeScript",
+        "template",
+        "create",
+        "test"
     ],
     "activationEvents": [
         "onCommand:extension.angularFileCreator.create-component",
