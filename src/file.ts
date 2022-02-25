@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {AngularFileType} from './naming';
 
 export async function doesFileExist(filePath: string): Promise<boolean> {
     try {
@@ -55,14 +54,6 @@ export async function findModules(inDirectory: string): Promise<string[]> {
     return relativeModulePaths;
 }
 
-export function ensureDot(relativePath: string): string {
-    if (relativePath[0] === '.') {
-        return relativePath;
-    } else {
-        return './' + relativePath;
-    }
-}
-
 export async function makeFolder(folder: string) {
     return new Promise<void>((resolve, reject) => {
         fs.mkdir(folder, (err) => {
@@ -79,17 +70,5 @@ export async function assertFolder(uri: vscode.Uri): Promise<void> {
     const fileStat = await vscode.workspace.fs.stat(uri);
     if (fileStat.type !== vscode.FileType.Directory) {
         throw new Error('Must select a folder for creating new Angular files');
-    }
-}
-
-export function getAngularFileType(filename: string): AngularFileType | undefined {
-    if (filename.endsWith('.component.ts')) {
-        return AngularFileType.Component;
-    } else if (filename.endsWith('.directive.ts')) {
-        return AngularFileType.Directive;
-    } else if (filename.endsWith('.module.ts')) {
-        return AngularFileType.Module;
-    } else {
-        return undefined;
     }
 }

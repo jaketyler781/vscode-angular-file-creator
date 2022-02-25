@@ -90,6 +90,13 @@
                     "type": "string",
                     "default": "lucid",
                     "description": "Specifies a prefix to add to selectors and names of modules, components, and directives created"
+                },
+                "extension.angularFileCreator.unitTestTemplates": {
+                    "type": "object",
+                    "markdownDescription": "Provide template unit test files when creating unit tests for TypeScript files that contain the item regex (e.g. `\"@SomeDecorator\": \"src/test/somedecorator.template.spec.ts\"`)",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 }
             }
         }

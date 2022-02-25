@@ -1,68 +1,15 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import {writeFile, findModules, doesFileExist, getAngularFileType} from './file';
-import {getSelectorName, getPrefix, getNameParts, AngularFileType, trimClassNameParts} from './naming';
+import {writeFile, findModules, doesFileExist} from './file';
+import {getNameParts, camelCase} from './naming';
 import {runWithErrorLogging} from './util';
 
-function toLowerCamelCase(upperCamelCase: string): string {
-    return upperCamelCase[0].toLowerCase() + upperCamelCase.slice(1);
-}
-
-async function findTsProject(filename: string): Promise<string | null> {
-    const dir = path.dirname(filename);
-
-    if (
-        (await doesFileExist(path.join(dir, 'tsconfig.json'))) ||
-        (await doesFileExist(path.join(dir, 'tsconfig.src.json')))
-    ) {
-        return dir;
-    } else if (dir === '.') {
-        return null;
-    } else {
-        return findTsProject(dir);
+export function getUnitTestTemplates(): ReadonlyMap<string, string> {
+    const result = vscode.workspace.getConfiguration('extension.angularFileCreator').unitTestTemplates;
+    if (typeof result !== 'object') {
+        return new Map();
     }
-}
-
-enum InjectorType {
-    Angular = 'Angular',
-    Lucid = 'Lucid',
-    None = 'None',
-}
-
-interface ClassMetadata {
-    name: string | undefined;
-    injector: InjectorType;
-}
-
-function getInjectorType(docText: string): InjectorType {
-    if (docText.indexOf('@Injectable') !== -1) {
-        return InjectorType.Angular;
-    } else if (docText.indexOf('@LucidInjectable') !== -1) {
-        return InjectorType.Lucid;
-    } else {
-        return InjectorType.None;
-    }
-}
-
-async function findPrimaryExport(inFile: string): Promise<ClassMetadata> {
-    let expectedClassName = path.basename(inFile, '.ts');
-
-    if (expectedClassName.endsWith('.component')) {
-        expectedClassName = expectedClassName.slice(0, -'.component'.length) + 'component';
-    } else if (expectedClassName.endsWith('.directive')) {
-        expectedClassName = expectedClassName.slice(0, -'.directive'.length) + 'directive';
-    } else if (expectedClassName.endsWith('.injectable')) {
-        expectedClassName = expectedClassName.slice(0, -'.injectable'.length) + '(injectable)?';
-    }
-
-    const doc = await vscode.workspace.openTextDocument(inFile);
-    const regex = new RegExp(`export class (${expectedClassName})`, 'gmi');
-    const docText = doc.getText();
-    const match = regex.exec(docText);
-    return {
-        name: match?.[1],
-        injector: getInjectorType(docText),
-    };
+    return new Map(Object.entries(result));
 }
 
 type ModuleInfo = {modulePath: string; moduleName: string};
@@ -90,157 +37,88 @@ async function findModuleForClass(filename: string, className: string): Promise<
     return null;
 }
 
-const inAngularEnvironmentImports = `import {
-    inAngularEnvironment,
-    TestEnvironmentConfiguration,
-} from '@lucid/angular/testing/angularenvironment/testangular';`;
-
-const mockProvidesImport = `import {mockProvides} from '@lucid/injector/mock/mockprovides';`;
-const ngMockProvidesImport = `import {ngMockProvides} from '@lucid/injector/mock/ngmockprovides';`;
-const setupInjectorImport = `import {setupInjector} from '@lucid/testing/testsetup';`;
-
-function getClassImport(className: string, filename: string) {
-    return `import {${className}} from './${path.basename(filename, '.ts')}';`;
+interface TemplateWithClass {
+    readonly className: string;
+    readonly fileTemplateUri: string;
 }
 
-function getAngularDescribe(itContent: string, module?: string) {
-    const ngModule = module
-        ? `ngModule: ${module},
-        `
-        : '';
-    return `describe(module.id, () => {
-    const getConfig = (): TestEnvironmentConfiguration => ({
-        ${ngModule}lucidProvides: mockProvides,
-        ngProvides: ngMockProvides,
-    });
-
-    it('should load injectable', async () => {
-        await inAngularEnvironment(getConfig(), async (testBedWrapper, lucidInjector) => {
-            ${itContent}
-            // TODO write test code
-        });
-    });
-});`;
+function getUnitTestTemplateWithClass(docText: string): TemplateWithClass | undefined {
+    const regexToTemplatesMap = getUnitTestTemplates();
+    const results = Array.from(regexToTemplatesMap.entries())
+        .map(([regexText, fileTemplateUri]): TemplateWithClass | undefined => {
+            const regex = new RegExp('(?<=' + regexText + '\\((.|\n)*\\)\nexport class )(.*?)(?=\\s)', 'gmi');
+            const match = regex.exec(docText);
+            const className = match?.[0];
+            if (!className) {
+                return undefined;
+            }
+            return {className, fileTemplateUri};
+        })
+        .filter((result): result is TemplateWithClass => !!result);
+    return results[0];
 }
 
-function getLucidInjectorDescribe(itContent = '') {
-    return `describe(module.id, () => {
-    it('should work', () => {
-        const injector = setupInjector(mockProvides);
-        ${itContent}
-        // TODO write test code
-    });
-});`;
+async function getTemplateContent(fileTemplateUri: string): Promise<string | undefined> {
+    const workspaceRootFolders = vscode.workspace.workspaceFolders ?? [];
+    const fileTemplateAbsoluteUris = workspaceRootFolders.map((workspaceRootFolder) =>
+        path.resolve(workspaceRootFolder.uri.fsPath, fileTemplateUri),
+    );
+    const fileTemplateAbsoluteUri = fileTemplateAbsoluteUris[0];
+    if (!fileTemplateAbsoluteUri) {
+        return undefined;
+    }
+    const templateDoc = await vscode.workspace.openTextDocument(fileTemplateAbsoluteUri);
+    return templateDoc.getText();
 }
 
-function generateLucidInjectorClasslessTest() {
-    return `${mockProvidesImport}
-${setupInjectorImport}
-
-${getLucidInjectorDescribe()}
-`;
-}
-
-function generateLucidInjectableClassTest(className: string, filename: string) {
-    return `${mockProvidesImport}
-${setupInjectorImport}
-${getClassImport(className, filename)}
-
-${getLucidInjectorDescribe(`const ${toLowerCamelCase(className)} = injector.get(${className});`)}
-`;
-}
-
-function generateAngularInjectableClassTest(className: string, filename: string) {
-    return `${inAngularEnvironmentImports}
-${mockProvidesImport}
-${ngMockProvidesImport}
-${getClassImport(className, filename)}
-
-${getAngularDescribe(`const ${toLowerCamelCase(className)} = testBedWrapper.inject(${className});`)}
-`;
-}
-
-function getTestComponentTemplate(
-    className: string,
-    angularFileType: AngularFileType.Component | AngularFileType.Directive,
-) {
-    const nameParts = trimClassNameParts(getNameParts(className), angularFileType);
-    const selectorName = getSelectorName(nameParts, angularFileType);
-    return angularFileType === AngularFileType.Component
-        ? `<${selectorName}></${selectorName}>`
-        : `<div ${selectorName}></div>`;
-}
-
-function generateAngularViewTest(
-    className: string,
-    moduleName: ModuleInfo,
-    angularFileType: AngularFileType.Component | AngularFileType.Directive,
-) {
-    const testClassName = `Test${className}`;
-    return `import {Component, NgModule} from '@angular/core';
-${inAngularEnvironmentImports}
-import {AsyncMockInteractions} from '@lucid/angular/testing/asyncmockinteractions';
-${mockProvidesImport}
-${ngMockProvidesImport}
-import {${moduleName.moduleName}} from '${moduleName.modulePath}';
-
-@Component({
-    template: '${getTestComponentTemplate(className, angularFileType)}',
-})
-class ${testClassName} {}
-
-@NgModule({
-    declarations: [${testClassName}],
-    imports: [${moduleName.moduleName}],
-})
-class TestModule {}
-
-${getAngularDescribe(
-    `const interactions = new AsyncMockInteractions();
-            const fixture = testBedWrapper.createComponent(${testClassName});
-            fixture.detectChanges();`,
-    'TestModule',
-)}
-`;
-}
-
-async function generateAngularTest(
-    className: string,
+async function populateTemplateWithModule(
+    templateDocText: string,
     filename: string,
-    angularFileType: AngularFileType,
+    className: string,
 ): Promise<string> {
-    if (angularFileType === AngularFileType.Module) {
-        throw new Error('Cannot create tests for Angular modules');
-    }
-
     const moduleInfo = await findModuleForClass(filename, className);
-    if (!moduleInfo) {
-        throw new Error('Could not find module for Angular unit being tested');
-    }
-
-    return generateAngularViewTest(className, moduleInfo, angularFileType);
+    return moduleInfo
+        ? templateDocText
+              .replace(/TESTMODULE/g, moduleInfo.moduleName) // References
+              .replace(/\.\/test.module/g, moduleInfo.modulePath) // Import
+        : templateDocText;
 }
+
+const selectorRegex = /(?<=selector: ('|")).*(?=('|"))/gim;
+function populateTemplateWithSelector(templateDocText: string, docText: string): string {
+    const selector = selectorRegex.exec(docText)?.[0];
+    return selector
+        ? templateDocText
+              .replace(/test-selector/g, selector) // Components
+              .replace(/testSelector/g, selector) // Directives
+        : templateDocText;
+}
+
+function populateTemplateWithClass(templateDocText: string, filename: string, className: string): string {
+    return templateDocText
+        .replace(/TESTCLASS/g, className) // References
+        .replace(/testclass/g, (filename.split('/').pop() ?? filename).replace(/\.ts/g, '')) // Import
+        .replace(/testClass/g, camelCase(getNameParts(className), false)); // Variable name
+}
+
+const basicTest = `describe(module.id, () => {
+    it('should work', () => {
+    });
+});`;
 
 async function getTestContent(uri: vscode.Uri): Promise<string> {
     const filename = uri.fsPath;
-    const classMetadata = await findPrimaryExport(filename);
-    const className = classMetadata.name;
-    const tsProjectDir = await findTsProject(filename);
-    const angularFileType = getAngularFileType(filename);
-    if (angularFileType && className && tsProjectDir) {
-        return await generateAngularTest(className, filename, angularFileType);
-    } else if (className) {
-        switch (classMetadata.injector) {
-            case InjectorType.Angular:
-                return generateAngularInjectableClassTest(className, filename);
-            case InjectorType.Lucid:
-                return generateLucidInjectableClassTest(className, filename);
-            case InjectorType.None:
-                return generateLucidInjectorClasslessTest();
-        }
-    } else {
-        return generateLucidInjectorClasslessTest();
+    const doc = await vscode.workspace.openTextDocument(uri.fsPath);
+    const docText = doc.getText();
+    const result = getUnitTestTemplateWithClass(docText);
+    let templateText = result ? await getTemplateContent(result.fileTemplateUri) : undefined;
+    if (!result || !templateText) {
+        return basicTest;
     }
+    const {className} = result;
+    templateText = await populateTemplateWithModule(templateText, filename, className);
+    templateText = populateTemplateWithSelector(templateText, docText);
+    return populateTemplateWithClass(templateText, filename, className);
 }
 
 async function runCreateUnitTestCommand(uri: vscode.Uri) {
