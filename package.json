@@ -2,7 +2,7 @@
     "name": "angular-file-creator",
     "displayName": "Angular File Creator",
     "description": "Creates base files for Angular components, modules, directives, and tests",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "publisher": "jaketyler781",
     "repository": {
         "type": "git",
