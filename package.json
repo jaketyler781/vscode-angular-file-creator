@@ -6,7 +6,7 @@
     "publisher": "jaketyler781",
     "repository": {
         "type": "git",
-        "url": "https://github.com/jaketyler781/angular-file-creator"
+        "url": "https://github.com/jaketyler781/vscode-angular-file-creator"
     },
     "engines": {
         "vscode": "^1.63.1"
