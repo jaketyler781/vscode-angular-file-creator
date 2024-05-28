@@ -3,7 +3,6 @@ import * as vscode from 'vscode';
 export enum AngularFileType {
     Component = 'component',
     Directive = 'directive',
-    Module = 'module',
 }
 
 /**

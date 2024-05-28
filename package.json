@@ -1,7 +1,7 @@
 {
     "name": "angular-file-creator",
     "displayName": "Angular File Creator",
-    "description": "Creates base files for Angular components, modules, directives, and tests",
+    "description": "Creates base files for Angular components, directives, and tests",
     "version": "1.0.1",
     "publisher": "jaketyler781",
     "repository": {
@@ -25,7 +25,6 @@
     "activationEvents": [
         "onCommand:extension.angularFileCreator.create-component",
         "onCommand:extension.angularFileCreator.create-directive",
-        "onCommand:extension.angularFileCreator.create-module",
         "onCommand:extension.angularFileCreator.create-unit-test"
     ],
     "main": "./out/extension.js",
@@ -39,11 +38,6 @@
                 },
                 {
                     "command": "extension.angularFileCreator.create-directive",
-                    "group": "1_modification",
-                    "when": "explorerViewletVisible && explorerResourceIsFolder"
-                },
-                {
-                    "command": "extension.angularFileCreator.create-module",
                     "group": "1_modification",
                     "when": "explorerViewletVisible && explorerResourceIsFolder"
                 },
@@ -65,10 +59,6 @@
                 {
                     "command": "extension.angularFileCreator.create-directive",
                     "when": "false"
-                },
-                {
-                    "command": "extension.angularFileCreator.create-module",
-                    "when": "false"
                 }
             ]
         },
@@ -82,10 +72,6 @@
                 "title": "Create angular directive"
             },
             {
-                "command": "extension.angularFileCreator.create-module",
-                "title": "Create angular module"
-            },
-            {
                 "command": "extension.angularFileCreator.create-unit-test",
                 "title": "Create unit test"
             }
@@ -97,7 +83,7 @@
                 "extension.angularFileCreator.prefix": {
                     "type": "string",
                     "default": "lucid",
-                    "description": "Specifies a prefix to add to selectors and names of modules, components, and directives created"
+                    "description": "Specifies a prefix to add to selectors and names of components and directives created"
                 },
                 "extension.angularFileCreator.unitTestTemplates": {
                     "type": "object",
