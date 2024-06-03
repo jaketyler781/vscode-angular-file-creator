@@ -34,5 +34,6 @@ The following key words in the templates are replaced automatically with data ab
 -   `testClass` replaced with a camelCase variable with the same name as the class
 -   `test-selector` replaced with the component's `selector` metadata attribute
 -   `testSelector` replaced with the directive's `selector` metadata attribute
--   `TESTMODULE` replaced with the module class name of the component/directive
+-   `TESTCOMPONENT` replaced with the Angular import of the class name of the component/directive
+    (i.e. the component/directive if standalone, else the module that declares the component/directive)
 -   `./test.module` replaced with the file import of the module

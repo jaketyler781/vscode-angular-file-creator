@@ -2,17 +2,10 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-import {writeFile, makeFolder, doesFileExist, assertFolder} from './file';
-import {
-    getNameParts,
-    getSelectorName,
-    getPrefix,
-    camelCase,
-    getModuleClassName,
-    trimClassNameParts,
-    AngularFileType,
-} from './naming';
+import {doesFileExist, assertFolder} from './file';
+import {getNameParts, getSelectorName, camelCase, trimClassNameParts, AngularFileType} from './naming';
 import {runWithErrorLogging} from './util';
+import {TextEncoder} from 'util';
 
 const InvalidCharacterRegex = /[^\w\d_]|^\d/i;
 
@@ -71,6 +64,10 @@ function getClassName(nameParts: string[], fileType: AngularFileType): string {
         case AngularFileType.Directive:
             return camelCase(nameParts, true) + 'Directive';
     }
+}
+
+async function writeFile(path: string, content: string): Promise<void> {
+    await vscode.workspace.fs.writeFile(vscode.Uri.file(path), new TextEncoder().encode(content));
 }
 
 async function createComponent(name: string[], containingFolder: string): Promise<void> {
@@ -139,7 +136,7 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
     if (await doesFileExist(componentFolder)) {
         throw new Error('Folder with name ' + componentFolder + ' already exists');
     }
-    await makeFolder(componentFolder);
+    await vscode.workspace.fs.createDirectory(vscode.Uri.file(componentFolder));
     await createComponent(name, componentFolder);
 }
 

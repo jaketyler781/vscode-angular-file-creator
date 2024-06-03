@@ -1,25 +1,39 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import {writeFile, findModules, doesFileExist} from './file';
 import {getNameParts, camelCase} from './naming';
 import {runWithErrorLogging} from './util';
+import {TestableClass} from './testableclass';
+import {TextEncoder} from 'util';
+import {doesFileExist} from './file';
 
-export function getUnitTestTemplates(): ReadonlyMap<string, string> {
-    const result = vscode.workspace.getConfiguration('extension.angularFileCreator').unitTestTemplates;
-    if (typeof result !== 'object') {
-        return new Map();
-    }
-    return new Map(Object.entries(result));
+interface ModuleInfo {
+    readonly modulePath: string;
+    readonly moduleName: string;
 }
 
-type ModuleInfo = {modulePath: string; moduleName: string};
+async function findModules(inDirectory: string): Promise<readonly string[]> {
+    const files = await vscode.workspace.fs.readDirectory(vscode.Uri.file(inDirectory));
+
+    const moduleFiles = files.filter(([file]) => file.indexOf('.module.ts') !== -1);
+    const relativeModulePaths = moduleFiles.map(([file]) => path.join(inDirectory, file));
+
+    const parentFolder = path.join(inDirectory, '..');
+    const workspaceRootFolders = vscode.workspace.workspaceFolders ?? [];
+    const isParentFolderInWorkspace = workspaceRootFolders.some(
+        (workspaceRootFolder) => path.relative(workspaceRootFolder.uri.fsPath, parentFolder).substr(0, 2) !== '..',
+    );
+    if (isParentFolderInWorkspace) {
+        const moreModules = await findModules(parentFolder);
+        return relativeModulePaths.concat(moreModules);
+    }
+    return relativeModulePaths;
+}
 
 async function findModuleForClass(filename: string, className: string): Promise<ModuleInfo | null> {
     const modulesToCheck = await findModules(path.dirname(filename));
 
     for (const potentialModulePath of modulesToCheck) {
-        const doc = await vscode.workspace.openTextDocument(potentialModulePath);
-        const text = doc.getText();
+        const text = vscode.workspace.fs.readFile(vscode.Uri.file(potentialModulePath)).toString();
         if (text.indexOf(className) === -1) {
             continue;
         }
@@ -37,68 +51,41 @@ async function findModuleForClass(filename: string, className: string): Promise<
     return null;
 }
 
-interface TemplateWithClass {
-    readonly className: string;
-    readonly fileTemplateUri: string;
-}
-
-function getUnitTestTemplateWithClass(docText: string): TemplateWithClass | undefined {
-    const regexToTemplatesMap = getUnitTestTemplates();
-    const results = Array.from(regexToTemplatesMap.entries())
-        .map(([regexText, fileTemplateUri]): TemplateWithClass | undefined => {
-            const regex = new RegExp('(?<=' + regexText + '\\((.|\n)*\\)\nexport class )(.*?)(?=\\s)', 'gmi');
-            const match = regex.exec(docText);
-            const className = match?.[0];
-            if (!className) {
-                return undefined;
-            }
-            return {className, fileTemplateUri};
-        })
-        .filter((result): result is TemplateWithClass => !!result);
-    return results[0];
-}
-
-async function getTemplateContent(fileTemplateUri: string): Promise<string | undefined> {
-    const workspaceRootFolders = vscode.workspace.workspaceFolders ?? [];
-    const fileTemplateAbsoluteUris = workspaceRootFolders.map((workspaceRootFolder) =>
-        path.resolve(workspaceRootFolder.uri.fsPath, fileTemplateUri),
-    );
-    const fileTemplateAbsoluteUri = fileTemplateAbsoluteUris[0];
-    if (!fileTemplateAbsoluteUri) {
-        return undefined;
+async function populateTemplateWithAngularImport(test: string, testableClass: TestableClass): Promise<string> {
+    if (!['@Component', '@Directive'].includes(testableClass.decorator)) {
+        return test;
+    } else if (testableClass.standalone) {
+        return test
+            .replace(/TESTCOMPONENT/g, testableClass.className)
+            .replace(
+                /test.component/g,
+                (testableClass.filePath.split('/').pop() ?? testableClass.filePath).replace(/\.ts/g, ''),
+            );
+    } else {
+        const moduleInfo = await findModuleForClass(testableClass.filePath, testableClass.className);
+        return moduleInfo
+            ? test
+                  .replace(/TESTCOMPONENT/g, moduleInfo.moduleName)
+                  .replace(/\.\/test.component/g, moduleInfo.modulePath)
+            : test;
     }
-    const templateDoc = await vscode.workspace.openTextDocument(fileTemplateAbsoluteUri);
-    return templateDoc.getText();
-}
-
-async function populateTemplateWithModule(
-    templateDocText: string,
-    filename: string,
-    className: string,
-): Promise<string> {
-    const moduleInfo = await findModuleForClass(filename, className);
-    return moduleInfo
-        ? templateDocText
-              .replace(/TESTMODULE/g, moduleInfo.moduleName) // References
-              .replace(/\.\/test.module/g, moduleInfo.modulePath) // Import
-        : templateDocText;
 }
 
 const selectorRegex = /(?<=selector: ('|")).*(?=('|"))/gim;
-function populateTemplateWithSelector(templateDocText: string, docText: string): string {
-    const selector = selectorRegex.exec(docText)?.[0];
+function populateTemplateWithSelector(test: string, testableClass: TestableClass): string {
+    const selector = selectorRegex.exec(testableClass.fileContents)?.[0];
     return selector
-        ? templateDocText
+        ? test
               .replace(/test-selector/g, selector) // Components
               .replace(/testSelector/g, selector) // Directives
-        : templateDocText;
+        : test;
 }
 
-function populateTemplateWithClass(templateDocText: string, filename: string, className: string): string {
-    return templateDocText
-        .replace(/TESTCLASS/g, className) // References
-        .replace(/testclass/g, (filename.split('/').pop() ?? filename).replace(/\.ts/g, '')) // Import
-        .replace(/testClass/g, camelCase(getNameParts(className), false)); // Variable name
+function populateTemplateWithClass(test: string, testableClass: TestableClass): string {
+    return test
+        .replace(/TESTCLASS/g, testableClass.className) // References
+        .replace(/testclass/g, (testableClass.filePath.split('/').pop() ?? testableClass.filePath).replace(/\.ts/g, '')) // Import
+        .replace(/testClass/g, camelCase(getNameParts(testableClass.className), false)); // Variable name
 }
 
 const basicTest = `describe(module.id, () => {
@@ -107,18 +94,14 @@ const basicTest = `describe(module.id, () => {
 });`;
 
 async function getTestContent(uri: vscode.Uri): Promise<string> {
-    const filename = uri.fsPath;
-    const doc = await vscode.workspace.openTextDocument(uri.fsPath);
-    const docText = doc.getText();
-    const result = getUnitTestTemplateWithClass(docText);
-    let templateText = result ? await getTemplateContent(result.fileTemplateUri) : undefined;
-    if (!result || !templateText) {
+    const testableClass = await TestableClass.create(uri.fsPath);
+    if (!testableClass) {
         return basicTest;
     }
-    const {className} = result;
-    templateText = await populateTemplateWithModule(templateText, filename, className);
-    templateText = populateTemplateWithSelector(templateText, docText);
-    return populateTemplateWithClass(templateText, filename, className);
+    let test = testableClass.testTemplate;
+    test = await populateTemplateWithAngularImport(test, testableClass);
+    test = populateTemplateWithSelector(test, testableClass);
+    return populateTemplateWithClass(test, testableClass);
 }
 
 async function runCreateUnitTestCommand(uri: vscode.Uri) {
@@ -126,22 +109,26 @@ async function runCreateUnitTestCommand(uri: vscode.Uri) {
         throw new Error('Must select a .ts file to create a unit test');
     }
 
-    const componentPath = uri.fsPath.slice(0, -3) + '.spec.ts';
-    const testFileAlreadyExists = await doesFileExist(componentPath);
-    if (testFileAlreadyExists) {
-        throw new Error(`A test file with the name ${componentPath} already exists`);
+    const specUri = vscode.Uri.file(uri.fsPath.slice(0, -3) + '.spec.ts');
+    if (await doesFileExist(specUri.fsPath)) {
+        throw new Error(`A test file with the name ${specUri} already exists`);
     }
 
-    const testContent = await getTestContent(uri);
-    await writeFile(componentPath, testContent);
-    const textDoc = await vscode.workspace.openTextDocument(componentPath);
-    await vscode.window.showTextDocument(textDoc);
+    const testCode = await getTestContent(uri);
+    const fileBytes = new TextEncoder().encode(testCode);
+    await vscode.workspace.fs.writeFile(specUri, fileBytes);
+    return specUri;
 }
 
 export function activate(context: vscode.ExtensionContext) {
     const createUnitTestListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-unit-test',
-        async (uri: vscode.Uri) => runWithErrorLogging(() => runCreateUnitTestCommand(uri)),
+        async (uri: vscode.Uri) =>
+            runWithErrorLogging(async () => {
+                const specPath = await runCreateUnitTestCommand(uri);
+                const specDocument = await vscode.workspace.openTextDocument(specPath);
+                await vscode.window.showTextDocument(specDocument);
+            }),
     );
     context.subscriptions.push(createUnitTestListener);
 }
