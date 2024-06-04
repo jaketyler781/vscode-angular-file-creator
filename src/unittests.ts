@@ -20,7 +20,7 @@ async function findModules(inDirectory: string): Promise<readonly string[]> {
     const parentFolder = path.join(inDirectory, '..');
     const workspaceRootFolders = vscode.workspace.workspaceFolders ?? [];
     const isParentFolderInWorkspace = workspaceRootFolders.some(
-        (workspaceRootFolder) => path.relative(workspaceRootFolder.uri.fsPath, parentFolder).substr(0, 2) !== '..',
+        (workspaceRootFolder) => path.relative(workspaceRootFolder.uri.fsPath, parentFolder).substring(0, 2) !== '..',
     );
     if (isParentFolderInWorkspace) {
         const moreModules = await findModules(parentFolder);
