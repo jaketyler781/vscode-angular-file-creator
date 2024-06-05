@@ -1,6 +1,6 @@
-import * as path from 'path';
 import * as vscode from 'vscode';
 import {TextDecoder} from 'util';
+import {readFile} from './file';
 
 /** A representation of a TypeScript class that can have a unit test generated for it. */
 export class TestableClass {
@@ -22,7 +22,7 @@ export class TestableClass {
             const regex = new RegExp('(?<=' + decorator + '\\((.|\n)*\\)\nexport class )(.*?)(?=\\s)', 'gmi');
             const className = regex.exec(fileContents)?.[0];
             if (className) {
-                const testTemplate = await getTemplateContent(fileTemplateUri);
+                const testTemplate = await readFile(fileTemplateUri);
                 if (testTemplate) {
                     return new TestableClass(filePath, fileContents, decorator, className, testTemplate);
                 }
@@ -30,20 +30,6 @@ export class TestableClass {
         }
         return undefined;
     }
-}
-
-async function getTemplateContent(fileTemplateUri: string): Promise<string | undefined> {
-    const workspaceRootFolders = vscode.workspace.workspaceFolders ?? [];
-    const fileTemplateAbsoluteUris = workspaceRootFolders.map((workspaceRootFolder) =>
-        path.resolve(workspaceRootFolder.uri.fsPath, fileTemplateUri),
-    );
-    const fileTemplateAbsoluteUri = fileTemplateAbsoluteUris[0];
-    if (!fileTemplateAbsoluteUri) {
-        return undefined;
-    }
-    const fileBytes = await vscode.workspace.fs.readFile(vscode.Uri.file(fileTemplateAbsoluteUri));
-    const fileContents: string = new TextDecoder().decode(fileBytes);
-    return fileContents;
 }
 
 function getUnitTestTemplates(): ReadonlyMap<string, string> {
