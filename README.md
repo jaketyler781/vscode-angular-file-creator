@@ -17,15 +17,18 @@ Create TypeScript and Angular unit tests quickly in VS Code by right clicking Ty
 Chose the words to appear before each class name, file name, and selector for Angular components, modules, and
 directives.
 
-`unitTestTemplates`
+`unitTestTemplates`, `harnessTemplate.static`, and `harnessTemplate.dynamic`
 
-Map decorators to templates for unit tests built around the classes the decorators are applied to. The decorator
-must be applied to a class following the format
+Templates for unit tests and harnesses.
+`unitTestTemplates` decorators to templates for unit tests built around the classes the decorators are applied to.
+The decorator must be applied to a class following the format
 
 ```
 @SomeDecorator(...)
 export class MyClass ...
 ```
+
+`harnessTemplate.static` and `harnessTemplate.dynamic` take individual templates.
 
 The following key words in the templates are replaced automatically with data about the class:
 

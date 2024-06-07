@@ -2,7 +2,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 
-import {doesFileExist, assertFolder} from './file';
+import {File, assertFolder} from './file';
 import {getNameParts, getSelectorName, camelCase, trimClassNameParts, AngularFileType} from './naming';
 import {runWithErrorLogging} from './util';
 import {TextEncoder} from 'util';
@@ -86,7 +86,7 @@ async function createComponent(name: string[], containingFolder: string): Promis
 async function createDirective(name: string[], inFolder: string): Promise<void> {
     const directivePath = path.join(inFolder, getFileName(name, '.directive.ts'));
 
-    if (await doesFileExist(directivePath)) {
+    if (await File.exists(directivePath)) {
         throw new Error(`File with name ${directivePath} already exists`);
     }
     await writeFile(directivePath, getDirectiveTemplate(name));
@@ -133,7 +133,7 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
     });
     const name = trimClassNameParts(getNameParts(componentName), AngularFileType.Component);
     const componentFolder = path.join(uri.fsPath, getFolderName(name));
-    if (await doesFileExist(componentFolder)) {
+    if (await File.exists(componentFolder)) {
         throw new Error('Folder with name ' + componentFolder + ' already exists');
     }
     await vscode.workspace.fs.createDirectory(vscode.Uri.file(componentFolder));

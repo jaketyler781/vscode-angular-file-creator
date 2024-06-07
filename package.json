@@ -9,7 +9,7 @@
         "url": "https://github.com/jaketyler781/vscode-angular-file-creator"
     },
     "engines": {
-        "vscode": "^1.63.1"
+        "vscode": "^1.90.0"
     },
     "categories": [
         "Other",
@@ -25,7 +25,8 @@
     "activationEvents": [
         "onCommand:extension.angularFileCreator.create-component",
         "onCommand:extension.angularFileCreator.create-directive",
-        "onCommand:extension.angularFileCreator.create-unit-test"
+        "onCommand:extension.angularFileCreator.create-unit-test",
+        "onCommand:extension.angularFileCreator.create-harness"
     ],
     "main": "./out/extension.js",
     "contributes": {
@@ -34,23 +35,32 @@
                 {
                     "command": "extension.angularFileCreator.create-component",
                     "group": "1_modification",
-                    "when": "explorerViewletVisible && explorerResourceIsFolder"
+                    "when": "explorerResourceIsFolder"
                 },
                 {
                     "command": "extension.angularFileCreator.create-directive",
                     "group": "1_modification",
-                    "when": "explorerViewletVisible && explorerResourceIsFolder"
+                    "when": "explorerResourceIsFolder"
                 },
                 {
                     "command": "extension.angularFileCreator.create-unit-test",
                     "group": "1_modification",
-                    "when": "explorerViewletVisible && resourceExtname == .ts && resourceFilename =~ /^((?!(spec|module|test|mock)).)*$/"
+                    "when": "resourceExtname == .ts && resourceFilename =~ /^((?!(spec|module|test|mock)).)*$/"
+                },
+                {
+                    "command": "extension.angularFileCreator.create-harness",
+                    "group": "1_modification",
+                    "when": "resourceFilename =~ /.*\\.component\\..*/"
                 }
             ],
             "commandPalette": [
                 {
                     "command": "extension.angularFileCreator.create-unit-test",
-                    "when": "explorerViewletVisible && resourceExtname == .ts && resourceFilename =~ /^((?!(spec|module|test|mock)).)*$/"
+                    "when": "resourceExtname == .ts && resourceFilename =~ /^((?!(spec|module|test|mock)).)*$/"
+                },
+                {
+                    "command": "extension.angularFileCreator.create-harness",
+                    "when": "resourceFilename =~ /.*\\.component\\..*/"
                 },
                 {
                     "command": "extension.angularFileCreator.create-component",
@@ -74,6 +84,10 @@
             {
                 "command": "extension.angularFileCreator.create-unit-test",
                 "title": "Create unit test"
+            },
+            {
+                "command": "extension.angularFileCreator.create-harness",
+                "title": "Create harness"
             }
         ],
         "configuration": {
@@ -84,6 +98,16 @@
                     "type": "string",
                     "default": "lucid",
                     "description": "Specifies a prefix to add to selectors and names of components and directives created"
+                },
+                "extension.angularFileCreator.harnessTemplate.dynamic": {
+                    "type": "string",
+                    "description": "A template for components with dynamic content (e.g. ng-content)",
+                    "default": "cake/app/webroot/ts/testing/templates/ngcontenttest.component.test.ts"
+                },
+                "extension.angularFileCreator.harnessTemplate.static": {
+                    "type": "string",
+                    "description": "A template for components with static content",
+                    "default": "cake/app/webroot/ts/testing/templates/test.component.test.ts"
                 },
                 "extension.angularFileCreator.unitTestTemplates": {
                     "type": "object",
@@ -104,18 +128,17 @@
         "test": "node ./out/test/runTest.js"
     },
     "devDependencies": {
-        "@types/glob": "^7.1.1",
-        "@types/mocha": "^5.2.6",
-        "@types/node": "^12.12.0",
-        "@types/vscode": "^1.63.1",
-        "@typescript-eslint/eslint-plugin": "^4.16.0",
-        "@typescript-eslint/parser": "^4.16.0",
-        "@vscode/test-electron": "^1.6.1",
-        "eslint": "^7.21.0",
-        "glob": "^7.1.4",
+        "@types/mocha": "^10.0.6",
+        "@types/node": "^20.14.2",
+        "@types/vscode": "^1.90.0",
+        "@typescript-eslint/eslint-plugin": "^7.12.0",
+        "@typescript-eslint/parser": "^7.12.0",
+        "@vscode/test-electron": "^2.4.0",
+        "eslint": "^8.56.0",
+        "glob": "^10.4.1",
         "mocha": "^10.4.0",
-        "prettier": "2.5.1",
+        "prettier": "^3.3.1",
         "source-map-support": "^0.5.12",
-        "typescript": "^4.2.2"
+        "typescript": "^5.4.5"
     }
 }
