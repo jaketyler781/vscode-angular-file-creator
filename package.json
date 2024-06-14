@@ -98,23 +98,6 @@
                     "type": "string",
                     "default": "lucid",
                     "description": "Specifies a prefix to add to selectors and names of components and directives created"
-                },
-                "extension.angularFileCreator.harnessTemplate.dynamic": {
-                    "type": "string",
-                    "description": "A template for components with dynamic content (e.g. ng-content)",
-                    "default": "cake/app/webroot/ts/testing/templates/ngcontenttest.component.test.ts"
-                },
-                "extension.angularFileCreator.harnessTemplate.static": {
-                    "type": "string",
-                    "description": "A template for components with static content",
-                    "default": "cake/app/webroot/ts/testing/templates/test.component.test.ts"
-                },
-                "extension.angularFileCreator.unitTestTemplates": {
-                    "type": "object",
-                    "markdownDescription": "Provide template unit test files when creating unit tests for TypeScript files that contain the item regex (e.g. `\"@SomeDecorator\": \"src/test/somedecorator.template.spec.ts\"`)",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
                 }
             }
         }

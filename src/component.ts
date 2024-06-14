@@ -40,20 +40,12 @@ export abstract class Component extends Testable {
 
         const selector = await this.getSelector();
         const name = await this.getComponentName();
-        const harnessTemplate = await this.getHarnessTemplate();
+
+        const harnessTemplateFile = new File('cake/app/webroot/ts/testing/templates/foobar/foobar.component.test.ts');
+        const harnessTemplate = await harnessTemplateFile.read();
         const harness = harnessTemplate.replace(this.templateSelectorRegex, selector).replace(/FooBar/g, name);
         const harnessFile = await File.write(harnessUri, harness);
         await harnessFile.show();
-    }
-
-    protected async getHarnessTemplate(): Promise<string> {
-        const htmlUri = this.ts.uri.fsPath.replace('.component.ts', '.component.html');
-        const html = new File(htmlUri);
-        const htmlContents = await html.read();
-        const template = new File(
-            htmlContents.includes('ng-content') ? Config.dynamicHarnessTemplate : Config.staticHarnessTemplate,
-        );
-        return await template.read();
     }
 
     protected async getSelector(): Promise<string> {
@@ -69,9 +61,4 @@ export abstract class Component extends Testable {
         const className = await this.getClassName();
         return className.replace('Component', '');
     }
-}
-
-interface AngularImport {
-    readonly relativePath: string;
-    readonly className: string;
 }

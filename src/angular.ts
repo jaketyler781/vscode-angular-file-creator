@@ -129,7 +129,7 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
     const componentName = await promptUserForClassName({
         defaultName: 'NewComponent',
         prompt: 'Name of component class',
-        exampleName: 'TestComponent FooBarComponent',
+        exampleName: 'FooBarComponent',
     });
     const name = trimClassNameParts(getNameParts(componentName), AngularFileType.Component);
     const componentFolder = path.join(uri.fsPath, getFolderName(name));
@@ -145,7 +145,7 @@ async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
     const directiveName = await promptUserForClassName({
         defaultName: 'NewDirective',
         prompt: 'Name of directive class',
-        exampleName: 'TestDirective, FooBarDirective',
+        exampleName: 'FooBarDirective',
     });
     const name = getNameParts(directiveName);
     if (name[name.length - 1] === 'directive') {

@@ -12,13 +12,19 @@ export class Testable {
     protected readonly ts: File;
     protected readonly specUri: vscode.Uri;
 
+    private static readonly unitTestTemplates = [
+        ['@Component', 'cake/app/webroot/ts/testing/templates/foobar/foobar.component.spec.ts'],
+        ['@Injectable', 'cake/app/webroot/ts/testing/templates/angularinjectable.template.spec.ts'],
+        ['@LucidInjectable', 'cake/app/webroot/ts/testing/templates/lucidinjectable.template.spec.ts'],
+    ];
+
     protected async getTestTemplate(): Promise<string> {
         const ts = await this.ts.read();
         const matches = ts.match(/export class/g) ?? [];
         if (matches.length !== 1) {
             throw new Error('File must have exactly one exported class');
         }
-        for (const [decorator, templatePath] of Config.unitTestTemplates.entries()) {
+        for (const [decorator, templatePath] of Testable.unitTestTemplates) {
             const regex = new RegExp('(?<=' + decorator + '\\((.|\n)*\\)\nexport class )(.*?)(?=\\s)', 'gmi');
             const className = regex.exec(ts)?.[0];
             if (!className) {

@@ -2,7 +2,7 @@
 
 ## Features
 
-Create Angular components, modules, and directives quickly in VS Code by right clicking folders in the explorer.
+Create Angular components and directives quickly in VS Code by right clicking folders in the explorer.
 
 ![create component demo](https://github.com/jaketyler781/vscode-angular-file-creator/blob/master/images/create-component-demo.gif?raw=true)
 
@@ -16,27 +16,3 @@ Create TypeScript and Angular unit tests quickly in VS Code by right clicking Ty
 
 Chose the words to appear before each class name, file name, and selector for Angular components, modules, and
 directives.
-
-`unitTestTemplates`, `harnessTemplate.static`, and `harnessTemplate.dynamic`
-
-Templates for unit tests and harnesses.
-`unitTestTemplates` decorators to templates for unit tests built around the classes the decorators are applied to.
-The decorator must be applied to a class following the format
-
-```
-@SomeDecorator(...)
-export class MyClass ...
-```
-
-`harnessTemplate.static` and `harnessTemplate.dynamic` take individual templates.
-
-The following key words in the templates are replaced automatically with data about the class:
-
--   `TESTCLASS` replaced with the class name
--   `testclass` replaced with the file name of the class
--   `testClass` replaced with a camelCase variable with the same name as the class
--   `test-selector` replaced with the component's `selector` metadata attribute
--   `testSelector` replaced with the directive's `selector` metadata attribute
--   `TESTCOMPONENT` replaced with the Angular import of the class name of the component/directive
-    (i.e. the component/directive if standalone, else the module that declares the component/directive)
--   `./test.module` replaced with the file import of the module
