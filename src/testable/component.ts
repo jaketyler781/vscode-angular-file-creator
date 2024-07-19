@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {Config} from './config';
-import {File} from './file';
+import {Config} from '../config';
+import {File} from '../file';
 import {Testable} from './testable';
 
 export abstract class Component extends Testable {

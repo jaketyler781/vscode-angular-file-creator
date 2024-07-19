@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import {File} from './file';
-import {Testable} from './testable';
+import {Testable} from './testable/testable';
 import {runWithErrorLogging} from './util';
-import {getComponentTestable} from './componenttestable';
+import {getComponentTestable} from './testable/componenttestable';
 
 export function activate(context: vscode.ExtensionContext) {
     const createUnitTestListener = vscode.commands.registerCommand(

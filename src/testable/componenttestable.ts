@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import {Component} from './component';
-import {File} from './file';
+import {File} from '../file';
 import {ModuleOwnedComponent} from './moduleownedcomponent';
 import {StandaloneComponent} from './standalonecomponent';
 

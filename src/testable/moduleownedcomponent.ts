@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import {File} from './file';
+import {File} from '../file';
 import {Component} from './component';
 
 export class ModuleOwnedComponent extends Component {

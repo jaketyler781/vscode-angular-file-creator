@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import {File} from './file';
-import {getNameParts, camelCase} from './naming';
-import {Config} from './config';
+import {File} from '../file';
+import {getNameParts, camelCase} from '../naming';
+import {Config} from '../config';
 
 export class Testable {
     constructor(public readonly uri: vscode.Uri) {
