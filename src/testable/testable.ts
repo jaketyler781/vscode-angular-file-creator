@@ -4,7 +4,7 @@ import {getNameParts, camelCase} from '../naming';
 import {Config} from '../config';
 
 export class Testable {
-    constructor(public readonly uri: vscode.Uri) {
+    constructor(uri: vscode.Uri) {
         this.ts = new File(uri);
         this.specUri = vscode.Uri.file(uri.fsPath.replace('.ts', '.spec.ts'));
     }
