@@ -51,18 +51,37 @@ export class File {
      * as well as for files relative to other files.
      */
     public async read(): Promise<string> {
-        if (this.contents) {
-            return this.contents;
-        }
-        return (this.contents = vscode.workspace.fs
-            .readFile(this.uri)
-            .then((fileBytes): string => new TextDecoder().decode(fileBytes)));
+        return vscode.workspace.fs.readFile(this.uri).then((fileBytes): string => new TextDecoder().decode(fileBytes));
     }
-    private contents?: PromiseLike<string>;
 
     public async show(): Promise<void> {
         const document = await vscode.workspace.openTextDocument(this.uri);
         await vscode.window.showTextDocument(document, {preview: false});
+    }
+
+    public async format(): Promise<void> {
+        const originalContents = await this.read();
+
+        function getStartIndexOfLine(lineNumber: number): number {
+            let i = -1;
+            while (lineNumber-- && i++ < originalContents.length) {
+                i = originalContents.indexOf('\n', i);
+                if (i < 0) break;
+            }
+            return i + 1; // +1 to skip the newline character
+        }
+
+        const textEdits = await vscode.commands.executeCommand<vscode.TextEdit[]>(
+            'vscode.executeFormatDocumentProvider',
+            this.uri,
+        );
+        let formatted = originalContents;
+        for (const textEdit of textEdits.reverse()) {
+            const start = getStartIndexOfLine(textEdit.range.start.line) + textEdit.range.start.character;
+            const end = getStartIndexOfLine(textEdit.range.end.line) + textEdit.range.end.character;
+            formatted = formatted.substring(0, start) + textEdit.newText + formatted.substring(end);
+        }
+        await File.write(this.uri, formatted);
     }
 
     private static asUri(filePath: string | vscode.Uri): vscode.Uri {

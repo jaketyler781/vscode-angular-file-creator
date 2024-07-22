@@ -57,6 +57,16 @@ export abstract class Component extends Testable {
         return selector;
     }
 
+    protected async getClassName(): Promise<string> {
+        const ts = await this.ts.read();
+        const classes = /export class (.*?)\s/gim.exec(ts);
+        const className = classes?.[1];
+        if (!className) {
+            throw new Error(`Could not find a class in ${this.ts.baseName}`);
+        }
+        return className;
+    }
+
     protected async getComponentName(): Promise<string> {
         const className = await this.getClassName();
         return className.replace('Component', '');
