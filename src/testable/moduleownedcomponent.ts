@@ -5,7 +5,8 @@ import {Component} from './component';
 
 export class ModuleOwnedComponent extends Component {
     public override async getComponentTest(): Promise<string> {
-        const template = await this.getTestTemplate();
+        const templateFile = new File('cake/app/webroot/ts/testing/templates/foobar/foobar.component.spec.ts');
+        const template = await templateFile.read();
         const selector = await this.getSelector();
         const module = await this.findModuleForClass();
         const componentClassName = await this.getClassName();
