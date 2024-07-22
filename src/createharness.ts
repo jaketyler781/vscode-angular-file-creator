@@ -1,13 +1,13 @@
 import * as vscode from 'vscode';
 import {runWithErrorLogging} from './util';
-import {getComponentTestable} from './testable/componenttestable';
+import {TestableFactory} from './testable/testablefactory';
 
 export function activate(context: vscode.ExtensionContext) {
     const createHarnessListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-harness',
         async (uri: vscode.Uri) =>
             runWithErrorLogging(async () => {
-                const component = await getComponentTestable(uri);
+                const component = await TestableFactory.getComponentTestable(uri);
                 await component.createHarness();
             }),
     );

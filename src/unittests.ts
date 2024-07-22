@@ -1,8 +1,7 @@
 import * as vscode from 'vscode';
 import {File} from './file';
-import {Testable} from './testable/testable';
 import {runWithErrorLogging} from './util';
-import {getComponentTestable} from './testable/componenttestable';
+import {TestableFactory} from './testable/testablefactory';
 
 export function activate(context: vscode.ExtensionContext) {
     const createUnitTestListener = vscode.commands.registerCommand(
@@ -18,9 +17,7 @@ export function activate(context: vscode.ExtensionContext) {
                     throw new Error(`A test file with the name ${specPath} already exists`);
                 }
 
-                const testable = uri.fsPath.endsWith('.component.ts')
-                    ? await getComponentTestable(uri)
-                    : new Testable(uri);
+                const testable = await TestableFactory.get(uri);
 
                 await testable.createTest();
             }),
