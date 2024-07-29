@@ -2,7 +2,7 @@
     "name": "angular-file-creator",
     "displayName": "Angular File Creator",
     "description": "Creates base files for Angular components, directives, and tests",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "publisher": "jaketyler781",
     "repository": {
         "type": "git",
@@ -109,6 +109,9 @@
         "watch": "tsc -watch -p ./",
         "pretest": "npm run compile",
         "test": "node ./out/test/runTest.js"
+    },
+    "dependencies": {
+        "typescript": "^5.5.4"
     },
     "devDependencies": {
         "@types/mocha": "^10.0.6",
