@@ -9,7 +9,10 @@ import {TextEncoder} from 'util';
 
 const InvalidCharacterRegex = /[^\w\d_]|^\d/i;
 
-const lessTemplate = '// TODO write style code\n';
+const lessTemplate = `:host {
+    display: flex;
+}
+`;
 
 function getHTMLTemplate(name: string[]) {
     return `<link rel="stylesheet" type="text/css" href="${getFileName(name, '.component.css')}">
