@@ -64,7 +64,3 @@ export function getPrefix(): string[] {
         return [];
     }
 }
-
-export function getModuleClassName(prefix: string[], nameParts: string[]): string {
-    return camelCase(prefix.concat(nameParts), true) + 'Module';
-}
