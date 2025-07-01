@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 
 import {File, assertFolder} from './file';
-import {getNameParts, getSelectorName, camelCase, trimClassNameParts, AngularFileType} from './naming';
+import {getNameParts, getSelectorName, camelCase, trimClassNameParts} from './naming';
 import {runWithErrorLogging} from './util';
 import {TextEncoder} from 'util';
 
@@ -39,32 +39,17 @@ function getComponentTemplate(name: string[]) {
 import {Component, ChangeDetectionStrategy} from '@angular/core';
 
 @Component({
-    selector: '${getSelectorName(name, AngularFileType.Component)}',
+    selector: '${getSelectorName(name)}',
     standalone: true,
     templateUrl: './${getFileName(name, '.component.html')}',
     changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [CommonModule],
 })
-export class ${getClassName(name, AngularFileType.Component)} {
+export class ${getClassName(name)} {
     // TODO implement component
 }
 `;
 }
-
-function getDirectiveTemplate(name: string[]) {
-    const directiveSelector = getSelectorName(name, AngularFileType.Directive);
-    return `import {Directive} from '@angular/core';
-
-@Directive({
-    selector: '${directiveSelector}',
-    standalone: true,
-})
-export class ${getClassName(name, AngularFileType.Directive)} {
-    // TODO implement directive
-}
-`;
-}
-
 function getFolderName(nameParts: string[]): string {
     return nameParts.join('');
 }
@@ -73,13 +58,8 @@ function getFileName(nameParts: string[], ext: string): string {
     return getFolderName(nameParts) + ext;
 }
 
-function getClassName(nameParts: string[], fileType: AngularFileType): string {
-    switch (fileType) {
-        case AngularFileType.Component:
-            return camelCase(nameParts, true) + 'Component';
-        case AngularFileType.Directive:
-            return camelCase(nameParts, true) + 'Directive';
-    }
+function getClassName(nameParts: string[]): string {
+    return camelCase(nameParts, true) + 'Component';
 }
 
 async function writeFile(path: string, content: string): Promise<void> {
@@ -98,17 +78,6 @@ async function createComponent(name: string[], containingFolder: string): Promis
         writeFile(stylesheetPath, lessTemplate),
     ]);
     const textDoc = await vscode.workspace.openTextDocument(componentPath);
-    await vscode.window.showTextDocument(textDoc);
-}
-
-async function createDirective(name: string[], inFolder: string): Promise<void> {
-    const directivePath = path.join(inFolder, getFileName(name, '.directive.ts'));
-
-    if (await File.exists(directivePath)) {
-        throw new Error(`File with name ${directivePath} already exists`);
-    }
-    await writeFile(directivePath, getDirectiveTemplate(name));
-    const textDoc = await vscode.workspace.openTextDocument(directivePath);
     await vscode.window.showTextDocument(textDoc);
 }
 
@@ -149,7 +118,7 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
         prompt: 'Name of component class',
         exampleName: 'FooBarComponent',
     });
-    const name = trimClassNameParts(getNameParts(componentName), AngularFileType.Component);
+    const name = trimClassNameParts(getNameParts(componentName));
     const componentFolder = path.join(uri.fsPath, getFolderName(name));
     if (await File.exists(componentFolder)) {
         throw new Error('Folder with name ' + componentFolder + ' already exists');
@@ -158,31 +127,10 @@ async function runCreateComponentCommand(uri: vscode.Uri): Promise<void> {
     await createComponent(name, componentFolder);
 }
 
-async function runCreateDirectiveCommand(uri: vscode.Uri): Promise<void> {
-    await assertFolder(uri);
-    const directiveName = await promptUserForClassName({
-        defaultName: 'NewDirective',
-        prompt: 'Name of directive class',
-        exampleName: 'FooBarDirective',
-    });
-    const name = getNameParts(directiveName);
-    if (name[name.length - 1] === 'directive') {
-        name.pop();
-    }
-
-    await createDirective(name, uri.fsPath);
-}
-
 export function activate(context: vscode.ExtensionContext) {
     const createComponentListener = vscode.commands.registerCommand(
         'extension.angularFileCreator.create-component',
         (uri: vscode.Uri) => runWithErrorLogging(() => runCreateComponentCommand(uri)),
     );
     context.subscriptions.push(createComponentListener);
-
-    const createDirectiveListener = vscode.commands.registerCommand(
-        'extension.angularFileCreator.create-directive',
-        (uri: vscode.Uri) => runWithErrorLogging(() => runCreateDirectiveCommand(uri)),
-    );
-    context.subscriptions.push(createDirectiveListener);
 }

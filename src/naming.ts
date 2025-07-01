@@ -1,10 +1,5 @@
 import * as vscode from 'vscode';
 
-export enum AngularFileType {
-    Component = 'component',
-    Directive = 'directive',
-}
-
 /**
  * @param nameParts a list of strings to combine into a single CamelCase word
  * @param capitalizeFirst whether to capitalize the first letter
@@ -33,8 +28,8 @@ export function getNameParts(name: string): string[] {
         .filter((a) => a.length > 0);
 }
 
-export function trimClassNameParts(nameParts: string[], fileType: AngularFileType): string[] {
-    if (nameParts[nameParts.length - 1] === fileType) {
+export function trimClassNameParts(nameParts: string[]): string[] {
+    if (nameParts[nameParts.length - 1] === 'component') {
         nameParts.pop();
     }
     const prefix = getPrefix();
@@ -44,15 +39,9 @@ export function trimClassNameParts(nameParts: string[], fileType: AngularFileTyp
     return nameParts;
 }
 
-export function getSelectorName(nameParts: string[], angularFileType: AngularFileType): string {
+export function getSelectorName(nameParts: string[]): string {
     const prefix = getPrefix();
-    if (angularFileType == AngularFileType.Component) {
-        return prefix.length > 0 ? `${prefix.join('-')}-${nameParts.join('-')}` : nameParts.join('-');
-    } else if (angularFileType === AngularFileType.Directive) {
-        return camelCase(getPrefix().concat(nameParts), false);
-    } else {
-        return '';
-    }
+    return prefix.length > 0 ? `${prefix.join('-')}-${nameParts.join('-')}` : nameParts.join('-');
 }
 
 export function getPrefix(): string[] {
