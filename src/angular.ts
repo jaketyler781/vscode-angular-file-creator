@@ -14,6 +14,19 @@ const lessTemplate = `:host {
 }
 `;
 
+function getBazelTemplate(name: string[]) {
+    return `load("//cake/build/bazel:ng_project.bzl", "ng_project")
+
+ng_project(
+    name = "${getFolderName(name)}",
+    deps = [
+        "@npm//@angular/common",
+        "@npm//@angular/core",
+    ],
+)
+`;
+}
+
 function getHTMLTemplate(name: string[]) {
     return `<link rel="stylesheet" type="text/css" href="${getFileName(name, '.component.css')}">
 
@@ -74,10 +87,12 @@ async function writeFile(path: string, content: string): Promise<void> {
 }
 
 async function createComponent(name: string[], containingFolder: string): Promise<void> {
+    const bazelPath = path.join(containingFolder, 'BUILD.bazel');
     const componentPath = path.join(containingFolder, getFileName(name, '.component.ts'));
     const templatePath = path.join(containingFolder, getFileName(name, '.component.html'));
     const stylesheetPath = path.join(containingFolder, getFileName(name, '.component.less'));
     await Promise.all([
+        writeFile(bazelPath, getBazelTemplate(name)),
         writeFile(componentPath, getComponentTemplate(name)),
         writeFile(templatePath, getHTMLTemplate(name)),
         writeFile(stylesheetPath, lessTemplate),
